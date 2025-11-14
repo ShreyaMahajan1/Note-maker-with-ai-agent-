@@ -144,7 +144,47 @@ app.put('/api/notes/:id', async (req, res) => {
     }
 
     const updatedNote = await notesService.updateNote(noteId, { content });
-    res.json(updatedNote);
+    // After updating note locally, attempt to update associated Google Calendar event (best-effort)
+    try {
+      const finalNote = await notesService.getNoteById(noteId);
+      if (finalNote && finalNote.calendarEventId && googleCal.isAuthorized()) {
+        try {
+          const summary = (finalNote.content || '').split('\n')[0].slice(0, 100) || 'Reminder from Note';
+          const description = `Note: ${finalNote.content}\nNote ID: ${finalNote.id}`;
+
+          const results = chrono.parse(finalNote.content || '');
+          let startDate = null;
+          let endDate = null;
+          if (results && results.length > 0) {
+            const first = results[0];
+            startDate = first.start ? first.start.date() : null;
+            endDate = first.end ? first.end.date() : (startDate ? new Date(startDate.getTime() + 60 * 60 * 1000) : null);
+          }
+
+          const updatedEvent = await googleCal.updateEvent(finalNote.calendarEventId, {
+            summary,
+            description,
+            startDate,
+            endDate,
+            timezone: req.body.timezone || 'UTC'
+          });
+
+          if (updatedEvent && updatedEvent.id) {
+            await notesService.updateNote(noteId, {
+              calendarEventId: updatedEvent.id,
+              calendarEventUrl: updatedEvent.htmlLink || finalNote.calendarEventUrl || null,
+            });
+          }
+        } catch (gErr) {
+          console.warn('Google Calendar update failed for edited note:', gErr.message || gErr);
+        }
+      }
+    } catch (fetchErr) {
+      console.warn('Failed to fetch note after update for calendar sync:', fetchErr.message || fetchErr);
+    }
+
+    const final = await notesService.getNoteById(noteId);
+    res.json(final || updatedNote);
   } catch (error) {
     if (error.message === 'Note not found') {
       res.status(404).json({ error: 'Note not found' });
@@ -157,6 +197,23 @@ app.put('/api/notes/:id', async (req, res) => {
 app.delete('/api/notes/:id', async (req, res) => {
   try {
     const noteId = req.params.id;
+    // Fetch note to see if it has an associated Google Calendar event
+    const note = await notesService.getNoteById(noteId);
+
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    // If the note has a calendarEventId and Google Calendar is authorized, attempt to delete the event
+    if (note.calendarEventId && googleCal.isAuthorized()) {
+      try {
+        await googleCal.deleteEvent(note.calendarEventId);
+      } catch (err) {
+        console.warn('Failed to delete associated Google Calendar event:', err.message || err);
+        // Continue deleting the note locally even if calendar deletion fails
+      }
+    }
+
     await notesService.deleteNote(noteId);
     res.status(204).send();
   } catch (error) {

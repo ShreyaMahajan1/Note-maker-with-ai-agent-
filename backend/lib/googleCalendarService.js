@@ -148,6 +148,65 @@ class GoogleCalendarService {
       throw error;
     }
   }
+
+  async deleteEvent(eventId) {
+    if (!this.isAuthorized()) {
+      throw new Error('Google Calendar not authorized');
+    }
+
+    try {
+      await this.calendar.events.delete({
+        calendarId: 'primary',
+        eventId,
+      });
+      console.log('✅ Google Calendar event deleted:', eventId);
+      return true;
+    } catch (error) {
+      console.error('Failed to delete Google Calendar event:', error.message);
+      throw error;
+    }
+  }
+
+  async updateEvent(eventId, { summary, description, startDate, endDate, timezone }) {
+    if (!this.isAuthorized()) {
+      throw new Error('Google Calendar not authorized');
+    }
+
+    try {
+      // Fetch existing event
+      const existing = await this.calendar.events.get({ calendarId: 'primary', eventId });
+      const event = existing.data || {};
+
+      if (summary) event.summary = summary;
+      if (description) event.description = description;
+
+      if (startDate) {
+        event.start = {
+          dateTime: startDate.toISOString(),
+          timeZone: timezone || (event.start && event.start.timeZone) || 'UTC'
+        };
+      }
+
+      if (endDate) {
+        event.end = {
+          dateTime: endDate.toISOString(),
+          timeZone: timezone || (event.end && event.end.timeZone) || 'UTC'
+        };
+      }
+
+      const response = await this.calendar.events.update({
+        calendarId: 'primary',
+        eventId,
+        resource: event,
+      });
+
+      console.log('✅ Google Calendar event updated:', response.data.id);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update Google Calendar event:', error.message || error);
+      throw error;
+    }
+  }
 }
 
 module.exports = GoogleCalendarService;

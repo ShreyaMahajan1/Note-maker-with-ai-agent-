@@ -17,7 +17,7 @@ import MicOffIcon from '@mui/icons-material/MicOff';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 
-const VoiceControl = ({ onAddNote, onDeleteNote, notes }) => {
+const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,7 +78,7 @@ const VoiceControl = ({ onAddNote, onDeleteNote, notes }) => {
         return () => {
             if (rec) rec.stop();
         };
-    }, [notes, onAddNote, onDeleteNote]);
+    }, [notes, onAddNote, onDeleteNote, onEditNote]);
 
     const speak = (text) => {
         if ('speechSynthesis' in window) {
@@ -146,6 +146,32 @@ const VoiceControl = ({ onAddNote, onDeleteNote, notes }) => {
         else if (command.includes('help') || command.includes('what can i say')) {
             setDialogOpen(true);
             speak('Showing help commands');
+        }
+        // Edit/update note commands: "edit [note snippet] to [new content]" or "update [note snippet] to [new content]"
+        else if (/(?:edit|update)\s+(?:note\s+)?(.+?)\s+to\s+(.+)/i.test(command)) {
+            const m = command.match(/(?:edit|update)\s+(?:note\s+)?(.+?)\s+to\s+(.+)/i);
+            if (m && m[1] && m[2]) {
+                const search = m[1].trim();
+                const newContent = m[2].trim();
+                const noteToEdit = notes.find(note => note.content.toLowerCase().includes(search.toLowerCase()));
+                if (noteToEdit) {
+                    if (typeof onEditNote === 'function') {
+                        onEditNote(noteToEdit.id, newContent);
+                        speak(`Updated note to: ${newContent}`);
+                        addToHistory(`EDIT: ${noteToEdit.content.substring(0,30)} → ${newContent.substring(0,30)}...`);
+                        setFeedback('✏️ Note updated');
+                        clearFeedbackAfterDelay(2500);
+                    } else {
+                        setFeedback('❌ Edit not supported');
+                        speak('Edit not supported');
+                        clearFeedbackAfterDelay();
+                    }
+                } else {
+                    setFeedback(`❌ Could not find note matching: "${search}"`);
+                    speak(`Could not find note matching ${search}`);
+                    clearFeedbackAfterDelay();
+                }
+            }
         }
         // List notes command
         else if (command.includes('list') || command.includes('show notes')) {
