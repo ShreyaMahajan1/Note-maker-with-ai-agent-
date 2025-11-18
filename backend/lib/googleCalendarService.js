@@ -99,7 +99,7 @@ class GoogleCalendarService {
     }
   }
 
-  async createEvent({ summary, description, startDate, endDate, timezone }) {
+  async createEvent({ summary, description, startDate, endDate, timezone, notesLink }) {
     if (!this.isAuthorized()) {
       throw new Error('Google Calendar not authorized');
     }
@@ -117,9 +117,18 @@ class GoogleCalendarService {
         };
       }
 
+      // Build description with notes link if provided
+      let eventDescription = description || '';
+      if (notesLink) {
+        if (eventDescription) {
+          eventDescription += '\n\n';
+        }
+        eventDescription += `📝 Notes: ${notesLink}`;
+      }
+
       const event = {
         summary,
-        description,
+        description: eventDescription,
         start: {
           dateTime: startDate.toISOString(),
           timeZone: timezone || 'UTC'
@@ -167,7 +176,7 @@ class GoogleCalendarService {
     }
   }
 
-  async updateEvent(eventId, { summary, description, startDate, endDate, timezone }) {
+  async updateEvent(eventId, { summary, description, startDate, endDate, timezone, notesLink }) {
     if (!this.isAuthorized()) {
       throw new Error('Google Calendar not authorized');
     }
@@ -178,7 +187,23 @@ class GoogleCalendarService {
       const event = existing.data || {};
 
       if (summary) event.summary = summary;
-      if (description) event.description = description;
+      
+      if (description !== undefined || notesLink !== undefined) {
+        let eventDescription = description || event.description || '';
+        
+        // Remove existing notes link if present
+        eventDescription = eventDescription.replace(/\n\n📝 Notes:.*$/s, '');
+        
+        // Add new notes link if provided
+        if (notesLink) {
+          if (eventDescription) {
+            eventDescription += '\n\n';
+          }
+          eventDescription += `📝 Notes: ${notesLink}`;
+        }
+        
+        event.description = eventDescription;
+      }
 
       if (startDate) {
         event.start = {

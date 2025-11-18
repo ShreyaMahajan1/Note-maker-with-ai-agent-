@@ -6,7 +6,7 @@ const notesService = require('./lib/notesService');
 const chrono = require('chrono-node');
 const path = require('path');
 const GoogleCalendarService = require('./lib/googleCalendarService');
-
+const { google } = require("googleapis");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -26,18 +26,21 @@ app.get('/api/test', (req, res) => {
 });
 
 // Notes endpoints
-app.get('/api/notes', async (req, res) => {
-  try {
-    const notes = await notesService.getAllNotes();
-    res.json(notes);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch notes' });
-  }
-});
+// app.get('/api/notes', async (req, res) => {
+//   try {
+//     const notes = await notesService.getAllNotes();
+//     res.json(notes);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Failed to fetch notes' });
+//   }
+// });
 
+// In your POST /api/notes endpoint, update the newNote object:
+
+// POST /api/notes endpoint - ADD notesLink parameter
 app.post('/api/notes', async (req, res) => {
   try {
-    const { content, color, timezone } = req.body;
+    const { content, color, timezone, link } = req.body;
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
     }
@@ -65,13 +68,13 @@ app.post('/api/notes', async (req, res) => {
       }
     } catch (checkErr) {
       console.warn('Error checking for duplicate:', checkErr.message);
-      // Continue with note creation even if duplicate check fails
     }
     
     const newNote = {
       id: Date.now().toString(),
       content,
       color: color || '#ffffff',
+      link: link?.trim() || null,
       createdAt: new Date().toISOString()
     };
     
@@ -85,19 +88,20 @@ app.post('/api/notes', async (req, res) => {
         const startDate = first.start ? first.start.date() : null;
         
         if (startDate && googleCal.isAuthorized()) {
-          // default to 1 hour event if end not provided
           const endDate = first.end ? first.end.date() : new Date(startDate.getTime() + 60 * 60 * 1000);
           
           try {
             const summary = (content || '').split('\n')[0].slice(0, 100) || 'Reminder from Note';
             const description = `Note: ${content}\nNote ID: ${savedNote.id}`;
             
+            // ⭐ ADD notesLink parameter here
             const event = await googleCal.createEvent({
               summary,
               description,
               startDate,
               endDate,
-              timezone: timezone || 'UTC'
+              timezone: timezone || 'UTC',
+              notesLink: link?.trim() || null  // 🔥 PASS THE LINK HERE
             });
 
             if (event && event.id) {
@@ -107,7 +111,6 @@ app.post('/api/notes', async (req, res) => {
                   calendarEventUrl: event.htmlLink || null
                 };
                 
-                // Add duplicate flag if event already existed
                 if (event.isDuplicate) {
                   updateData.isDuplicate = true;
                 }
@@ -126,7 +129,6 @@ app.post('/api/notes', async (req, res) => {
       console.warn('Date parse error:', parseErr);
     }
 
-    // Fetch and return the updated note with calendar info
     const finalNote = await notesService.getNoteById(savedNote.id);
     res.status(201).json(finalNote || savedNote);
   } catch (error) {
@@ -134,17 +136,21 @@ app.post('/api/notes', async (req, res) => {
   }
 });
 
+// PUT /api/notes/:id endpoint - ADD notesLink parameter
 app.put('/api/notes/:id', async (req, res) => {
   try {
     const noteId = req.params.id;
-    const { content } = req.body;
+    const { content, link } = req.body;
     
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
     }
 
-    const updatedNote = await notesService.updateNote(noteId, { content });
-    // After updating note locally, attempt to update associated Google Calendar event (best-effort)
+    const updatedNote = await notesService.updateNote(noteId, { 
+      content,
+      link: link?.trim() || null
+    });
+    
     try {
       const finalNote = await notesService.getNoteById(noteId);
       if (finalNote && finalNote.calendarEventId && googleCal.isAuthorized()) {
@@ -161,12 +167,14 @@ app.put('/api/notes/:id', async (req, res) => {
             endDate = first.end ? first.end.date() : (startDate ? new Date(startDate.getTime() + 60 * 60 * 1000) : null);
           }
 
+          // ⭐ ADD notesLink parameter here
           const updatedEvent = await googleCal.updateEvent(finalNote.calendarEventId, {
             summary,
             description,
             startDate,
             endDate,
-            timezone: req.body.timezone || 'UTC'
+            timezone: req.body.timezone || 'UTC',
+            notesLink: link?.trim() || null  // 🔥 PASS THE LINK HERE
           });
 
           if (updatedEvent && updatedEvent.id) {
@@ -333,4 +341,117 @@ app.use((err, req, res, next) => {
 
 app.listen(port, () => {
   console.log(`🚀 Server is running on port ${port}`);
+});
+
+// Add this route to your server.js file
+
+// Get calendar events (add this with your other Google Calendar routes)
+// Get Google Calendar events
+app.get('/api/google/calendar/events', async (req, res) => {
+  try {
+    // Check auth
+    if (
+      !googleCal.oauth2Client.credentials ||
+      !googleCal.oauth2Client.credentials.access_token
+    ) {
+      return res.status(401).json({ error: 'Not authenticated with Google' });
+    }
+
+    const calendar = google.calendar({
+      version: 'v3',
+      auth: googleCal.oauth2Client
+    });
+
+    const { timeMin, timeMax } = req.query;
+
+    const response = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: timeMin || new Date().toISOString(),
+      timeMax:
+        timeMax ||
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      maxResults: 100,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    const events = response.data.items || [];
+
+    res.json({
+      events: events.map((e) => ({
+        id: e.id,
+        summary: e.summary || 'No title',
+        description: e.description,
+        start: e.start,
+        end: e.end,
+        location: e.location,
+        htmlLink: e.htmlLink
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching calendar events:', error);
+    res.status(500).json({
+      error: 'Failed to fetch calendar events',
+      details: error.message
+    });
+  }
+});
+
+
+// Also update your existing notes route to include calendar event data
+// Modify the GET /api/notes route to include calendar event info
+app.get('/api/notes', async (req, res) => {
+  try {
+    // Fetch all notes from DB
+    const notes = await notesService.getAllNotes();
+
+    // If Google Calendar is not authorized, just return notes
+    if (!googleCal.oauth2Client.credentials?.access_token) {
+      return res.json(notes);
+    }
+
+    // Create calendar client
+    const { google } = require("googleapis");
+    const calendar = google.calendar({
+      version: "v3",
+      auth: googleCal.oauth2Client
+    });
+
+    // Fetch the last 90 days of events
+    const response = await calendar.events.list({
+      calendarId: "primary",
+      timeMin: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+      maxResults: 500,
+      singleEvents: true,
+      orderBy: "startTime"
+    });
+
+    const calendarEvents = response.data.items || [];
+
+    // Match notes → calendar events by summary
+    const enrichedNotes = notes.map((note) => {
+      const match = calendarEvents.find((event) => {
+        const title = event.summary?.toLowerCase() || "";
+        const snippet = (note.content || "").toLowerCase().substring(0, 50);
+        return title.includes(snippet);
+      });
+
+      if (match) {
+        return {
+          ...note,
+          calendarEventId: match.id,
+          calendarEventUrl: match.htmlLink || null,
+          eventStart: match.start,
+          eventEnd: match.end
+        };
+      }
+
+      return note;
+    });
+
+    res.json(enrichedNotes);
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    res.status(500).json({ error: "Failed to fetch notes" });
+  }
 });
