@@ -56,6 +56,7 @@ import NotesGrid from "./components/NotesGrid";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import CalendarView from "./components/CalendarView";
 import "./App.css";
+import InspirationCard from "./components/inspirationCard";
 
 const theme = createTheme({
   palette: {
@@ -250,7 +251,7 @@ function App() {
       const response = await fetch("http://localhost:5000/api/google/status");
       const data = await response.json();
       setGoogleAuthorized(data.authorized || false);
-      
+
       // If not authorized, reset the state
       if (!data.authorized) {
         setGoogleAuthorized(false);
@@ -316,18 +317,29 @@ function App() {
         const data = await response.json();
 
         // Handle token expiration
-        if (response.status === 401 || (data.error && data.error.includes('token'))) {
+        if (
+          response.status === 401 ||
+          (data.error && data.error.includes("token"))
+        ) {
           setGoogleAuthorized(false);
-          showSnackbar("⚠️ Calendar session expired. Please reconnect.", "warning");
+          showSnackbar(
+            "⚠️ Calendar session expired. Please reconnect.",
+            "warning"
+          );
         } else if (response.status === 409) {
-          showSnackbar("⚠️ This event already exists on your calendar!", "warning");
+          showSnackbar(
+            "⚠️ This event already exists on your calendar!",
+            "warning"
+          );
         } else if (response.ok) {
           setNotes([data, ...notes]);
           setNote("");
           setNoteLink("");
           showSnackbar("Note added successfully");
           if (data.calendarEventUrl) {
-            showSnackbar("✅ Calendar event created! Check your Google Calendar.");
+            showSnackbar(
+              "✅ Calendar event created! Check your Google Calendar."
+            );
           }
         } else {
           throw new Error(data.error || "Failed to add note");
@@ -697,7 +709,9 @@ function App() {
               fontSize: "0.9rem",
               transition: "all 0.2s ease",
               border:
-                selectedCategory === category ? "none" : "1px solid transparent",
+                selectedCategory === category
+                  ? "none"
+                  : "1px solid transparent",
               "&:hover": {
                 backgroundColor:
                   selectedCategory === category ? "#ad081b" : "#f5f5f5",
@@ -731,7 +745,13 @@ function App() {
             backdropFilter: "blur(10px)",
           }}
         >
-          <Toolbar sx={{ py: { xs: 1, sm: 1.5 }, px: { xs: 1, sm: 2, md: 4 }, minHeight: { xs: 56, sm: 64 } }}>
+          <Toolbar
+            sx={{
+              py: { xs: 1, sm: 1.5 },
+              px: { xs: 1, sm: 2, md: 4 },
+              minHeight: { xs: 56, sm: 64 },
+            }}
+          >
             {currentView === "notes" && (
               <IconButton
                 onClick={() => setSidebarOpen(true)}
@@ -788,10 +808,11 @@ function App() {
               }}
             >
               <Tab
-                icon={<NotesIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
+                icon={
+                  <NotesIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
+                }
                 iconPosition="start"
                 value="notes"
-                
                 sx={{
                   "& .MuiTab-iconWrapper": {
                     mr: { xs: 0, sm: 0.5, md: 1 },
@@ -799,10 +820,13 @@ function App() {
                 }}
               />
               <Tab
-                icon={<CalendarMonthIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
+                icon={
+                  <CalendarMonthIcon
+                    sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }}
+                  />
+                }
                 iconPosition="start"
                 value="calendar"
-               
                 sx={{
                   "& .MuiTab-iconWrapper": {
                     mr: { xs: 0, sm: 0.5, md: 1 },
@@ -812,7 +836,13 @@ function App() {
             </Tabs>
 
             {currentView === "notes" && (
-              <Box sx={{ display: "flex", gap: { xs: 0.25, sm: 0.5 }, mr: { xs: 0.5, sm: 1, md: 2 } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: { xs: 0.25, sm: 0.5 },
+                  mr: { xs: 0.5, sm: 1, md: 2 },
+                }}
+              >
                 <IconButton
                   onClick={() => setLayoutMode("grid")}
                   size="small"
@@ -861,7 +891,9 @@ function App() {
                   }}
                   title="Single Card View"
                 >
-                  <ViewAgendaIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
+                  <ViewAgendaIcon
+                    sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }}
+                  />
                 </IconButton>
               </Box>
             )}
@@ -1271,6 +1303,22 @@ function App() {
                       </CardContent>
                     </Card>
                   </Grid>
+                  <Box
+                    sx={{
+                      display: { xs: "none", xl: "block" },
+                      flexShrink: 0,
+                      width: { md: "min(40vw, 600px)" },
+                      maxWidth: { md: "600px" },
+                      minWidth: { md: "320px" },
+                      position: "relative",
+                      alignSelf: "flex-start",
+                      mt: { md: 0 },
+                      zIndex: 10,
+                      px: { md: 0 },
+                    }}
+                  >
+                    <InspirationCard />
+                  </Box>
 
                   <Grid item xs={12}>
                     {filteredNotes.length === 0 ? (
@@ -1804,7 +1852,7 @@ function App() {
           onClose={() => setColorMenuAnchor(null)}
           TransitionComponent={Fade}
           PaperProps={{
-            sx:{
+            sx: {
               borderRadius: 2,
               boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
             },
