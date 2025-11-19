@@ -31,6 +31,7 @@ import {
   Tabs,
   Tab,
   Link,
+  Drawer,
 } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -47,6 +48,8 @@ import NotesIcon from "@mui/icons-material/Notes";
 import GridViewIcon from "@mui/icons-material/GridView";
 import ViewAgendaIcon from "@mui/icons-material/ViewAgenda";
 import LinkIcon from "@mui/icons-material/Link";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import { AiDialog } from "./components/AiDialog";
 import VoiceControl from "./components/VoiceControl";
 import NotesGrid from "./components/NotesGrid";
@@ -152,22 +155,22 @@ function App() {
     severity: "success",
   });
   const [selectedColor, setSelectedColor] = useState(() => {
-  return localStorage.getItem("notepin-color") || "#ffffff";
-});
-const [currentView, setCurrentView] = useState(() => {
-  return localStorage.getItem("notepin-view") || "notes";
-});
-const [layoutMode, setLayoutMode] = useState(() => {
-  return localStorage.getItem("notepin-layout") || "grid";
-});
-const [selectedCategory, setSelectedCategory] = useState(() => {
-  return localStorage.getItem("notepin-category") || "All";
-});
+    return localStorage.getItem("notepin-color") || "#ffffff";
+  });
+  const [currentView, setCurrentView] = useState(() => {
+    return localStorage.getItem("notepin-view") || "notes";
+  });
+  const [layoutMode, setLayoutMode] = useState(() => {
+    return localStorage.getItem("notepin-layout") || "grid";
+  });
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    return localStorage.getItem("notepin-category") || "All";
+  });
   const [colorMenuAnchor, setColorMenuAnchor] = useState(null);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [googleAuthorized, setGoogleAuthorized] = useState(false);
   const [checkingGoogleAuth, setCheckingGoogleAuth] = useState(true);
-  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // AI-related state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
@@ -213,22 +216,24 @@ const [selectedCategory, setSelectedCategory] = useState(() => {
     "#d7aefb",
     "#fdcfe8",
   ];
-// Persist settings to localStorage
-useEffect(() => {
-  localStorage.setItem("notepin-view", currentView);
-}, [currentView]);
 
-useEffect(() => {
-  localStorage.setItem("notepin-layout", layoutMode);
-}, [layoutMode]);
+  // Persist settings to localStorage
+  useEffect(() => {
+    localStorage.setItem("notepin-view", currentView);
+  }, [currentView]);
 
-useEffect(() => {
-  localStorage.setItem("notepin-category", selectedCategory);
-}, [selectedCategory]);
+  useEffect(() => {
+    localStorage.setItem("notepin-layout", layoutMode);
+  }, [layoutMode]);
 
-useEffect(() => {
-  localStorage.setItem("notepin-color", selectedColor);
-}, [selectedColor]);
+  useEffect(() => {
+    localStorage.setItem("notepin-category", selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    localStorage.setItem("notepin-color", selectedColor);
+  }, [selectedColor]);
+
   const fetchNotes = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/notes");
@@ -245,6 +250,11 @@ useEffect(() => {
       const response = await fetch("http://localhost:5000/api/google/status");
       const data = await response.json();
       setGoogleAuthorized(data.authorized || false);
+      
+      // If not authorized, reset the state
+      if (!data.authorized) {
+        setGoogleAuthorized(false);
+      }
     } catch (error) {
       console.error("Error checking Google auth status:", error);
       setGoogleAuthorized(false);
@@ -252,6 +262,15 @@ useEffect(() => {
       setCheckingGoogleAuth(false);
     }
   };
+
+  // Check auth status periodically
+  useEffect(() => {
+    const authCheckInterval = setInterval(() => {
+      checkGoogleAuthStatus();
+    }, 60000); // Check every minute
+
+    return () => clearInterval(authCheckInterval);
+  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -296,20 +315,19 @@ useEffect(() => {
         });
         const data = await response.json();
 
-        if (response.status === 409) {
-          showSnackbar(
-            "⚠️ This event already exists on your calendar!",
-            "warning"
-          );
+        // Handle token expiration
+        if (response.status === 401 || (data.error && data.error.includes('token'))) {
+          setGoogleAuthorized(false);
+          showSnackbar("⚠️ Calendar session expired. Please reconnect.", "warning");
+        } else if (response.status === 409) {
+          showSnackbar("⚠️ This event already exists on your calendar!", "warning");
         } else if (response.ok) {
           setNotes([data, ...notes]);
           setNote("");
           setNoteLink("");
           showSnackbar("Note added successfully");
           if (data.calendarEventUrl) {
-            showSnackbar(
-              "✅ Calendar event created! Check your Google Calendar."
-            );
+            showSnackbar("✅ Calendar event created! Check your Google Calendar.");
           }
         } else {
           throw new Error(data.error || "Failed to add note");
@@ -503,7 +521,6 @@ useEffect(() => {
     return "General";
   };
 
-  // Filter notes based on selected category
   const filteredNotes =
     selectedCategory === "All"
       ? notes
@@ -511,13 +528,11 @@ useEffect(() => {
           (note) => getNoteCategory(note.content) === selectedCategory
         );
 
-  // Get all unique categories from notes
   const allCategories = [
     "All",
     ...new Set(notes.map((note) => getNoteCategory(note.content))),
   ];
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const notesPerPage = 10;
   const totalPages = Math.ceil(filteredNotes.length / notesPerPage);
@@ -552,7 +567,6 @@ useEffect(() => {
   const [miniAnalyticsVisible, setMiniAnalyticsVisible] = useState(true);
   const totalNotes = useMemo(() => (notes ? notes.length : 0), [notes]);
 
-  // Helper function to render note content with clickable links
   const renderNoteContent = (content, link) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const parts = content.split(urlRegex);
@@ -626,6 +640,79 @@ useEffect(() => {
     );
   };
 
+  // Sidebar Component
+  const CategorySidebar = () => (
+    <Box
+      sx={{
+        backgroundColor: "#ffffff",
+        borderRadius: 3,
+        border: "1px solid #e0e0e0",
+        p: 2.5,
+        maxHeight: "calc(100vh - 120px)",
+        overflowY: "auto",
+        "&::-webkit-scrollbar": {
+          width: "6px",
+        },
+        "&::-webkit-scrollbar-track": {
+          background: "#f1f1f1",
+          borderRadius: "10px",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          background: "#e0e0e0",
+          borderRadius: "10px",
+          "&:hover": {
+            background: "#d0d0d0",
+          },
+        },
+      }}
+    >
+      <Typography
+        variant="subtitle2"
+        sx={{
+          mb: 2,
+          fontWeight: 700,
+          color: "#202124",
+          fontSize: "0.95rem",
+        }}
+      >
+        📂 Categories
+      </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        {allCategories.map((category) => (
+          <Box
+            key={category}
+            onClick={() => {
+              setSelectedCategory(category);
+              setSidebarOpen(false);
+            }}
+            sx={{
+              px: 2.5,
+              py: 1.5,
+              borderRadius: 2,
+              backgroundColor:
+                selectedCategory === category ? "#e60023" : "transparent",
+              color: selectedCategory === category ? "white" : "#202124",
+              cursor: "pointer",
+              fontWeight: selectedCategory === category ? 700 : 600,
+              fontSize: "0.9rem",
+              transition: "all 0.2s ease",
+              border:
+                selectedCategory === category ? "none" : "1px solid transparent",
+              "&:hover": {
+                backgroundColor:
+                  selectedCategory === category ? "#ad081b" : "#f5f5f5",
+                borderColor:
+                  selectedCategory === category ? "transparent" : "#e0e0e0",
+              },
+            }}
+          >
+            {category}
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <Box
@@ -644,7 +731,22 @@ useEffect(() => {
             backdropFilter: "blur(10px)",
           }}
         >
-          <Toolbar sx={{ py: 1.5, px: { xs: 2, sm: 4 } }}>
+          <Toolbar sx={{ py: { xs: 1, sm: 1.5 }, px: { xs: 1, sm: 2, md: 4 }, minHeight: { xs: 56, sm: 64 } }}>
+            {currentView === "notes" && (
+              <IconButton
+                onClick={() => setSidebarOpen(true)}
+                sx={{
+                  mr: { xs: 0.5, sm: 1 },
+                  display: { xs: "flex", md: "none" },
+                  color: "#e60023",
+                  p: { xs: 0.5, sm: 1 },
+                }}
+                size="small"
+              >
+                <MenuIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              </IconButton>
+            )}
+
             <Typography
               variant="h5"
               component="div"
@@ -652,14 +754,14 @@ useEffect(() => {
                 flexGrow: 1,
                 color: "#e60023",
                 fontWeight: 700,
-                fontSize: "1.8rem",
+                fontSize: { xs: "1.1rem", sm: "1.5rem", md: "1.8rem" },
                 letterSpacing: "-0.5px",
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
+                gap: { xs: 0.5, sm: 1 },
               }}
             >
-              <SmartToyIcon sx={{ fontSize: 32 }} />
+              <SmartToyIcon sx={{ fontSize: { xs: 20, sm: 28, md: 32 } }} />
               <span>NotePin</span>
             </Typography>
 
@@ -667,14 +769,15 @@ useEffect(() => {
               value={currentView}
               onChange={(e, newValue) => setCurrentView(newValue)}
               sx={{
-                mr: { xs: 1, sm: 2 },
-                minHeight: { xs: 42, sm: 48 },
+                mr: { xs: 0.5, sm: 1, md: 2 },
+                minHeight: { xs: 40, sm: 48 },
                 "& .MuiTab-root": {
                   textTransform: "none",
                   fontWeight: 600,
-                  minHeight: { xs: 42, sm: 48 },
-                  minWidth: { xs: 48, sm: 100 },
-                  px: { xs: 1, sm: 2 },
+                  minHeight: { xs: 40, sm: 48 },
+                  minWidth: { xs: 40, sm: 80, md: 100 },
+                  px: { xs: 0.5, sm: 1.5, md: 2 },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
                 },
                 "& .Mui-selected": {
                   color: "#e60023",
@@ -685,30 +788,34 @@ useEffect(() => {
               }}
             >
               <Tab
-                icon={<NotesIcon />}
+                icon={<NotesIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
                 iconPosition="start"
                 value="notes"
+                
                 sx={{
                   "& .MuiTab-iconWrapper": {
-                    mr: { xs: 0, sm: 1 },
+                    mr: { xs: 0, sm: 0.5, md: 1 },
                   },
                 }}
               />
               <Tab
-                icon={<CalendarMonthIcon />}
+                icon={<CalendarMonthIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
                 iconPosition="start"
                 value="calendar"
+               
                 sx={{
                   "& .MuiTab-iconWrapper": {
-                    mr: { xs: 0, sm: 1 },
+                    mr: { xs: 0, sm: 0.5, md: 1 },
                   },
                 }}
               />
             </Tabs>
+
             {currentView === "notes" && (
-              <Box sx={{ display: "flex", gap: 0.5, mr: { xs: 1, sm: 2 } }}>
+              <Box sx={{ display: "flex", gap: { xs: 0.25, sm: 0.5 }, mr: { xs: 0.5, sm: 1, md: 2 } }}>
                 <IconButton
                   onClick={() => setLayoutMode("grid")}
+                  size="small"
                   sx={{
                     color: layoutMode === "grid" ? "#e60023" : "#757575",
                     backgroundColor:
@@ -719,6 +826,7 @@ useEffect(() => {
                       layoutMode === "grid"
                         ? "2px solid #e60023"
                         : "2px solid transparent",
+                    p: { xs: 0.5, sm: 0.75, md: 1 },
                     "&:hover": {
                       backgroundColor:
                         layoutMode === "grid"
@@ -728,10 +836,11 @@ useEffect(() => {
                   }}
                   title="Grid View"
                 >
-                  <GridViewIcon />
+                  <GridViewIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
                 </IconButton>
                 <IconButton
                   onClick={() => setLayoutMode("single")}
+                  size="small"
                   sx={{
                     color: layoutMode === "single" ? "#e60023" : "#757575",
                     backgroundColor:
@@ -742,6 +851,7 @@ useEffect(() => {
                       layoutMode === "single"
                         ? "2px solid #e60023"
                         : "2px solid transparent",
+                    p: { xs: 0.5, sm: 0.75, md: 1 },
                     "&:hover": {
                       backgroundColor:
                         layoutMode === "single"
@@ -751,7 +861,7 @@ useEffect(() => {
                   }}
                   title="Single Card View"
                 >
-                  <ViewAgendaIcon />
+                  <ViewAgendaIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
                 </IconButton>
               </Box>
             )}
@@ -769,22 +879,54 @@ useEffect(() => {
               sx={{
                 textTransform: "none",
                 fontWeight: 600,
-                borderRadius: 20,
-                px: { xs: 2, sm: 3 },
-                py: { xs: 0.5, sm: 1 },
-                fontSize: { xs: "0.7rem", sm: "0.85rem" },
-                minWidth: { xs: "100px", sm: "140px" },
+                borderRadius: { xs: 2, sm: 20 },
+                px: { xs: 1, sm: 2, md: 3 },
+                py: { xs: 0.5, sm: 0.75, md: 1 },
+                fontSize: { xs: "0.65rem", sm: "0.75rem", md: "0.85rem" },
+                minWidth: { xs: "80px", sm: "110px", md: "140px" },
               }}
               disabled={checkingGoogleAuth}
             >
               {checkingGoogleAuth
-                ? "Checking..."
+                ? "..."
                 : googleAuthorized
-                ? "✓ Calendar"
-                : "Connect Calendar"}
+                ? "✓ Cal"
+                : "Connect"}
             </Button>
           </Toolbar>
         </AppBar>
+
+        {/* Mobile Drawer for Categories */}
+        <Drawer
+          anchor="left"
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          sx={{
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": {
+              width: 280,
+              boxSizing: "border-box",
+              p: 2,
+            },
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 700, color: "#e60023" }}>
+              Categories
+            </Typography>
+            <IconButton onClick={() => setSidebarOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <CategorySidebar />
+        </Drawer>
 
         <SpeedDial
           ariaLabel="AI Actions"
@@ -978,156 +1120,11 @@ useEffect(() => {
                   zIndex: 100,
                 }}
               >
-                <Box
-                  sx={{
-                    backgroundColor: "#ffffff",
-                    borderRadius: 3,
-                    border: "1px solid #e0e0e0",
-                    p: 2.5,
-                    maxHeight: "calc(100vh - 120px)",
-                    overflowY: "auto",
-                    "&::-webkit-scrollbar": {
-                      width: "6px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                      background: "#f1f1f1",
-                      borderRadius: "10px",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "#e0e0e0",
-                      borderRadius: "10px",
-                      "&:hover": {
-                        background: "#d0d0d0",
-                      },
-                    },
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      mb: 2,
-                      fontWeight: 700,
-                      color: "#202124",
-                      fontSize: "0.95rem",
-                    }}
-                  >
-                    📂 Categories
-                  </Typography>
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
-                  >
-                    {allCategories.map((category) => (
-                      <Box
-                        key={category}
-                        onClick={() => setSelectedCategory(category)}
-                        sx={{
-                          px: 2.5,
-                          py: 1.5,
-                          borderRadius: 2,
-                          backgroundColor:
-                            selectedCategory === category
-                              ? "#e60023"
-                              : "transparent",
-                          color:
-                            selectedCategory === category ? "white" : "#202124",
-                          cursor: "pointer",
-                          fontWeight: selectedCategory === category ? 700 : 600,
-                          fontSize: "0.9rem",
-                          transition: "all 0.2s ease",
-                          border:
-                            selectedCategory === category
-                              ? "none"
-                              : "1px solid transparent",
-                          "&:hover": {
-                            backgroundColor:
-                              selectedCategory === category
-                                ? "#ad081b"
-                                : "#f5f5f5",
-                            borderColor:
-                              selectedCategory === category
-                                ? "transparent"
-                                : "#e0e0e0",
-                          },
-                        }}
-                      >
-                        {category}
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
+                <CategorySidebar />
               </Box>
 
               <Box sx={{ flex: 1, minWidth: 0, width: "100%" }}>
                 <Grid container spacing={4}>
-                  <Grid
-                    item
-                    xs={12}
-                    sx={{ display: { xs: "block", md: "none" } }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 1,
-                        flexWrap: "wrap",
-                        p: 2.5,
-                        backgroundColor: "#ffffff",
-                        borderRadius: 3,
-                        border: "1px solid #e0e0e0",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          alignSelf: "center",
-                          mr: 2,
-                          fontWeight: 700,
-                          color: "#202124",
-                          fontSize: "0.95rem",
-                        }}
-                      >
-                        📂 Filter:
-                      </Typography>
-                      {allCategories.map((category) => (
-                        <Box
-                          key={category}
-                          onClick={() => setSelectedCategory(category)}
-                          sx={{
-                            px: 2.5,
-                            py: 1,
-                            borderRadius: 20,
-                            backgroundColor:
-                              selectedCategory === category
-                                ? "#e60023"
-                                : "#f0f0f0",
-                            color:
-                              selectedCategory === category
-                                ? "white"
-                                : "#202124",
-                            cursor: "pointer",
-                            fontWeight:
-                              selectedCategory === category ? 700 : 600,
-                            fontSize: "0.9rem",
-                            transition: "all 0.2s ease",
-                            border:
-                              selectedCategory === category
-                                ? "none"
-                                : "1px solid #e0e0e0",
-                            "&:hover": {
-                              backgroundColor:
-                                selectedCategory === category
-                                  ? "#ad081b"
-                                  : "#e0e0e0",
-                              transform: "translateY(-2px)",
-                            },
-                          }}
-                        >
-                          {category}
-                        </Box>
-                      ))}
-                    </Box>
-                  </Grid>
-
                   <Grid item xs={12}>
                     <Card
                       elevation={0}
@@ -1807,7 +1804,7 @@ useEffect(() => {
           onClose={() => setColorMenuAnchor(null)}
           TransitionComponent={Fade}
           PaperProps={{
-            sx: {
+            sx:{
               borderRadius: 2,
               boxShadow: "0 12px 24px rgba(0,0,0,0.15)",
             },
