@@ -15,7 +15,6 @@ class NotesService {
                 this.initialized = true;
             } catch (error) {
                 console.error('Error initializing notes service:', error);
-                // Create default data structure if file doesn't exist
                 await this.saveNotes([]);
             }
         }
