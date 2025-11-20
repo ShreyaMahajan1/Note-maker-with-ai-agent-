@@ -1360,7 +1360,7 @@ function App() {
                                 sx={{
                                   backgroundColor: note.color,
                                   border: "1px solid rgba(0, 0, 0, 0.08)",
-                                  minHeight: 220,
+                                  height: 220,
                                   position: "relative",
                                   overflow: "hidden",
                                   cursor: "pointer",
@@ -1582,15 +1582,7 @@ function App() {
                         )}
 
                         {layoutMode === "single" && (
-                          <Box
-                            sx={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 2,
-                              mb: 10,
-                              width: "100%",
-                            }}
-                          >
+                          <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
                             {currentNotes.map((note) => (
                               <Card
                                 key={note.id}
@@ -1598,18 +1590,33 @@ function App() {
                                   backgroundColor: note.color,
                                   border: "1px solid rgba(0, 0, 0, 0.08)",
                                   position: "relative",
-                                  overflow: "visible",
+                                  overflow: "hidden",
                                   transition: "all 0.2s ease",
                                   borderRadius: "12px",
                                   boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
                                   width: "100%",
+
+                                  // ⭐ FIXED HEIGHT + layout
+                                  height: 260,
+                                  display: "flex",
+                                  flexDirection: "column",
+
                                   "&:hover": {
                                     boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
                                     transform: "translateY(-2px)",
                                   },
                                 }}
                               >
-                                <CardContent sx={{ p: 3 }}>
+                                <CardContent
+                                  sx={{
+                                    p: 3,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    flex: 1,
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {/* Header (chips + date) */}
                                   <Box
                                     sx={{
                                       display: "flex",
@@ -1664,6 +1671,7 @@ function App() {
                                         />
                                       )}
                                     </Box>
+
                                     <Typography
                                       variant="caption"
                                       sx={{
@@ -1682,10 +1690,23 @@ function App() {
                                     </Typography>
                                   </Box>
 
-                                  <Box sx={{ mb: 2 }}>
+                                  {/* ⭐ Scrollable content */}
+                                  <Box
+                                    sx={{
+                                      flex: 1,
+                                      overflowY: "auto",
+                                      pr: 1,
+                                      mb: 2,
+                                      scrollbarWidth: "none",
+                                      "&::-webkit-scrollbar": {
+                                        display: "none",
+                                      },
+                                    }}
+                                  >
                                     {renderNoteContent(note.content, note.link)}
                                   </Box>
 
+                                  {/* Footer (buttons) */}
                                   <Box
                                     sx={{
                                       display: "flex",
@@ -1710,10 +1731,10 @@ function App() {
                                             "rgba(26, 115, 232, 0.1)",
                                         },
                                       }}
-                                      title="Enhance"
                                     >
                                       <AutoFixHighIcon />
                                     </IconButton>
+
                                     <IconButton
                                       size="small"
                                       onClick={() => openEditDialog(note)}
@@ -1723,10 +1744,10 @@ function App() {
                                           backgroundColor: "rgba(0,0,0,0.04)",
                                         },
                                       }}
-                                      title="Edit"
                                     >
                                       <EditIcon />
                                     </IconButton>
+
                                     <IconButton
                                       size="small"
                                       onClick={() => {
@@ -1741,10 +1762,10 @@ function App() {
                                             "rgba(230, 0, 35, 0.1)",
                                         },
                                       }}
-                                      title="Categorize"
                                     >
                                       <CategoryIcon />
                                     </IconButton>
+
                                     <IconButton
                                       size="small"
                                       onClick={() => handleDeleteNote(note.id)}
@@ -1755,7 +1776,6 @@ function App() {
                                             "rgba(211, 47, 47, 0.1)",
                                         },
                                       }}
-                                      title="Delete"
                                     >
                                       <DeleteIcon />
                                     </IconButton>
