@@ -26,6 +26,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import GroupsIcon from "@mui/icons-material/Groups";
 import LinkIcon from "@mui/icons-material/Link";
 import DescriptionIcon from "@mui/icons-material/Description";
+import API_BASE_URL from "../config";
 
 const defaultEventColor = "#e60023"; // fallback color
 
@@ -46,7 +47,7 @@ const CalendarView = ({ googleAuthorized }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/google/calendar/events?timeMin=${encodeURIComponent(
+        `${API_BASE_URL}/api/google/calendar/events?timeMin=${encodeURIComponent(
           fromIso
         )}&timeMax=${encodeURIComponent(toIso)}`
       );
