@@ -215,8 +215,11 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                     color={isListening ? 'error' : 'primary'}
                     sx={{
                         position: 'fixed',
-                        bottom: 100,
-                        right: 24,
+                        bottom: 104,
+                        right: 28,
+                        width: 56,
+                        height: 56,
+                        zIndex: 1300,
                         animation: isListening ? 'pulse 1s infinite' : 'none',
                         '@keyframes pulse': {
                             '0%': {
@@ -320,7 +323,7 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
             </Dialog>
 
             {/* Feedback Display */}
-            {(isListening || feedback) && (
+            {isListening && (
                 <Paper
                     elevation={3}
                     sx={{
@@ -331,11 +334,13 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                         maxWidth: 320,
                         maxHeight: 400,
                         overflowY: 'auto',
-                        borderRadius: 2,
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        backdropFilter: 'blur(10px)',
+                        borderRadius: 3,
+                        background: 'rgba(30, 41, 59, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(139, 92, 246, 0.3)',
                         borderLeft: '4px solid',
-                        borderLeftColor: isListening ? 'primary.main' : 'success.main',
+                        borderLeftColor: isListening ? '#8b5cf6' : '#10b981',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
                         zIndex: 1000
                     }}
                 >
@@ -343,9 +348,10 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                     <Typography 
                         variant="body2" 
                         sx={{ 
-                            fontWeight: 500,
+                            fontWeight: 600,
                             mb: feedback ? 1 : 0,
-                            color: 'text.primary'
+                            color: '#f1f5f9',
+                            fontSize: '0.9rem'
                         }}
                     >
                         {feedback || '🎤 Ready to listen...'}
@@ -357,11 +363,11 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                             <VolumeUpIcon 
                                 sx={{ 
                                     fontSize: 18, 
-                                    color: 'primary.main',
+                                    color: '#8b5cf6',
                                     animation: 'bounce 1s infinite'
                                 }} 
                             />
-                            <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                            <Typography variant="caption" sx={{ color: '#a78bfa', fontWeight: 600 }}>
                                 Listening...
                             </Typography>
                         </Box>

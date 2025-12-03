@@ -284,6 +284,33 @@ class GoogleCalendarService {
     return this.calendar !== null && this.oauth2Client !== null;
   }
 
+  async checkTokenValidity() {
+    if (!this.isAuthorized()) {
+      return { valid: false, reason: 'not_authorized' };
+    }
+
+    try {
+      // Try to make a simple API call to verify token
+      await this.calendar.calendarList.list({ maxResults: 1 });
+      return { valid: true };
+    } catch (error) {
+      console.error('Token validation failed:', error.message);
+      
+      // Check if it's an auth error
+      if (error.code === 401 || error.message.includes('invalid') || error.message.includes('expired')) {
+        // Clear the invalid token
+        if (fs.existsSync(this.tokenPath)) {
+          fs.unlinkSync(this.tokenPath);
+          console.log('🗑️ Removed expired token');
+        }
+        this.calendar = null;
+        return { valid: false, reason: 'token_expired' };
+      }
+      
+      return { valid: false, reason: 'unknown_error' };
+    }
+  }
+
   generateAuthUrl() {
     return this.oauth2Client.generateAuthUrl({
       access_type: 'offline',

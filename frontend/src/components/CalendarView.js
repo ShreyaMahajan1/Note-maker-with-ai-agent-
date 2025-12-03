@@ -396,7 +396,7 @@ const CalendarView = ({ googleAuthorized }) => {
         >
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
             <Box key={d} sx={{ textAlign: "center", py: { xs: 0.5, md: 1 } }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: "#5f6368", fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: "#94a3b8", fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
                 {isMobile ? d.substring(0, 1) : d}
               </Typography>
             </Box>
@@ -420,12 +420,12 @@ const CalendarView = ({ googleAuthorized }) => {
                 sx={{
                   minHeight: { xs: 50, md: 100 },
                   p: { xs: 0.3, md: 1 },
-                  backgroundColor: isSameDate(dateObj, today) ? "#e3f2fd" : "#fafafa",
+                  background: isSameDate(dateObj, today) ? "rgba(139, 92, 246, 0.2)" : "rgba(15, 23, 42, 0.5)",
                   borderRadius: { xs: 0.5, md: 1.5 },
-                  border: isSameDate(dateObj, today) ? "2px solid #1a73e8" : "1px solid #e0e0e0",
+                  border: isSameDate(dateObj, today) ? "2px solid #8b5cf6" : "1px solid rgba(139, 92, 246, 0.2)",
                   position: "relative",
                   cursor: "pointer",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
+                  "&:hover": { background: "rgba(139, 92, 246, 0.15)" },
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -437,7 +437,7 @@ const CalendarView = ({ googleAuthorized }) => {
                   variant="body2"
                   sx={{
                     fontWeight: isSameDate(dateObj, today) ? 700 : 600,
-                    color: isSameDate(dateObj, today) ? "#1a73e8" : "#202124",
+                    color: isSameDate(dateObj, today) ? "#a78bfa" : "#f1f5f9",
                     mb: { xs: 0.2, md: 0.5 },
                     fontSize: { xs: '0.65rem', md: '0.875rem' },
                     textAlign: 'center',
@@ -452,7 +452,7 @@ const CalendarView = ({ googleAuthorized }) => {
                       <Box key={i}>{renderEventBadge(ev, true)}</Box>
                     ))}
                     {dayEvents.length > 2 && (
-                      <Typography variant="caption" sx={{ color: "#5f6368", fontSize: '0.65rem' }}>
+                      <Typography variant="caption" sx={{ color: "#94a3b8", fontSize: '0.65rem' }}>
                         +{dayEvents.length - 2} more
                       </Typography>
                     )}
@@ -484,10 +484,10 @@ const CalendarView = ({ googleAuthorized }) => {
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: { xs: 0.5, md: 1 }, mb: 1 }}>
           {weekDates.map((d) => (
             <Box key={d.toDateString()} sx={{ textAlign: "center", py: 1 }}>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: "#5f6368", fontSize: { xs: '0.65rem', md: '0.75rem' } }}>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: "#94a3b8", fontSize: { xs: '0.65rem', md: '0.75rem' } }}>
                 {isMobile ? d.toLocaleDateString(undefined, { weekday: 'short' }).substring(0, 1) : d.toLocaleDateString(undefined, { weekday: "short" })}
               </Typography>
-              <Typography variant="caption" sx={{ display: "block", fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
+              <Typography variant="caption" sx={{ display: "block", fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.75rem' }, color: "#f1f5f9" }}>
                 {d.getDate()}
               </Typography>
             </Box>
@@ -503,17 +503,17 @@ const CalendarView = ({ googleAuthorized }) => {
                 sx={{
                   minHeight: { xs: 100, md: 160 },
                   p: { xs: 0.5, md: 1 },
-                  backgroundColor: isSameDate(d, today) ? "#e8f0fe" : "#fff",
+                  background: isSameDate(d, today) ? "rgba(139, 92, 246, 0.2)" : "rgba(15, 23, 42, 0.5)",
                   borderRadius: 1.5,
-                  border: isSameDate(d, today) ? "2px solid #1a73e8" : "1px solid #e0e0e0",
+                  border: isSameDate(d, today) ? "2px solid #8b5cf6" : "1px solid rgba(139, 92, 246, 0.2)",
                   cursor: "pointer",
-                  "&:hover": { backgroundColor: "#f7f7f7" },
+                  "&:hover": { background: "rgba(139, 92, 246, 0.15)" },
                 }}
                 onClick={() => openDayView(d)}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                   {dayEvents.length === 0 && (
-                    <Typography variant="caption" sx={{ color: "#9aa0a6", fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
+                    <Typography variant="caption" sx={{ color: "#64748b", fontSize: { xs: '0.6rem', md: '0.75rem' } }}>
                       {!isMobile && 'No events'}
                     </Typography>
                   )}
@@ -521,7 +521,7 @@ const CalendarView = ({ googleAuthorized }) => {
                     <Box key={i} sx={{ display: "flex", flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, gap: { xs: 0.25, md: 1 } }}>
                       <Box sx={{ flex: 1 }}>{renderEventBadge(ev, true)}</Box>
                       {!isMobile && (
-                        <Typography variant="caption" sx={{ color: "#5f6368", fontSize: "0.65rem" }}>
+                        <Typography variant="caption" sx={{ color: "#94a3b8", fontSize: "0.65rem" }}>
                           {ev.start?.dateTime ? formatTime(ev.start.dateTime) : "All day"}
                         </Typography>
                       )}
@@ -548,14 +548,14 @@ const CalendarView = ({ googleAuthorized }) => {
 
     return (
       <Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, fontSize: { xs: '0.9rem', md: '1rem' }, color: "#f1f5f9" }}>
           {dateObj.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         </Typography>
 
         {dayEvents.length === 0 && (
           <Box sx={{ py: 6, textAlign: "center" }}>
-            <EventIcon sx={{ fontSize: 36, color: "#bdbdbd" }} />
-            <Typography variant="body2" sx={{ color: "#9aa0a6", mt: 1 }}>
+            <EventIcon sx={{ fontSize: 36, color: "#64748b" }} />
+            <Typography variant="body2" sx={{ color: "#94a3b8", mt: 1 }}>
               No events for this day
             </Typography>
           </Box>
@@ -565,18 +565,26 @@ const CalendarView = ({ googleAuthorized }) => {
           {dayEvents.map((ev, i) => {
             const { meetingLink, notesLink } = extractLinks(ev);
             return (
-              <Paper key={i} sx={{ p: { xs: 1, md: 1.25 }, display: "flex", flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, gap: 1 }}>
+              <Paper key={i} sx={{ 
+                p: { xs: 1, md: 1.25 }, 
+                display: "flex", 
+                flexDirection: { xs: 'column', md: 'row' }, 
+                alignItems: { xs: 'flex-start', md: 'center' }, 
+                gap: 1,
+                background: "rgba(15, 23, 42, 0.5)",
+                border: "1px solid rgba(139, 92, 246, 0.2)",
+              }}>
                 <Box sx={{ width: { xs: '100%', md: 86 }, textAlign: { xs: 'left', md: 'center' } }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.75rem' }, color: "#a78bfa" }}>
                     {ev.start?.dateTime ? formatTime(ev.start.dateTime) : "All day"}
                   </Typography>
                 </Box>
 
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '0.85rem', md: '0.875rem' } }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: { xs: '0.85rem', md: '0.875rem' }, color: "#f1f5f9" }}>
                     {ev.summary}
                   </Typography>
-                  <Typography variant="caption" sx={{ display: "block", color: "#616161", fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
+                  <Typography variant="caption" sx={{ display: "block", color: "#94a3b8", fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
                     {ev.location || (ev.attendees ? `${ev.attendees.length} attendees` : "")}
                   </Typography>
                 </Box>
@@ -718,11 +726,26 @@ const CalendarView = ({ googleAuthorized }) => {
 
   // main return
   return (
-    <Paper sx={{ p: { xs: 1.5, md: 3 }, borderRadius: 3, border: "1px solid #e0e0e0", position: "relative", overflow: 'hidden' }}>
+    <Paper sx={{ 
+      p: { xs: 1.5, md: 3 }, 
+      borderRadius: 4, 
+      border: "1px solid rgba(139, 92, 246, 0.2)", 
+      position: "relative", 
+      overflow: 'hidden',
+      background: "rgba(30, 41, 59, 0.8)",
+      backdropFilter: "blur(20px)",
+      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+    }}>
       {!googleAuthorized && (
-        <Paper sx={{ p: 4, textAlign: "center", borderRadius: 3 }}>
-          <EventIcon sx={{ fontSize: 60, color: "#e0e0e0", mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: "center", 
+          borderRadius: 4,
+          background: "rgba(15, 23, 42, 0.5)",
+          border: "1px solid rgba(139, 92, 246, 0.2)",
+        }}>
+          <EventIcon sx={{ fontSize: 60, color: "#64748b", mb: 2 }} />
+          <Typography variant="h6" sx={{ color: "#cbd5e1" }}>
             Connect your Google Calendar to view events
           </Typography>
         </Paper>
@@ -733,7 +756,7 @@ const CalendarView = ({ googleAuthorized }) => {
           {/* Header */}
           <Box sx={{ display: "flex", flexDirection: { xs: 'column', md: 'row' }, justifyContent: "space-between", alignItems: { xs: 'flex-start', md: 'center' }, mb: 3, gap: 2 }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: "#202124", display: "inline-block", mr: 2, fontSize: { xs: '1rem', md: '1.25rem' } }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: "#f1f5f9", display: "inline-block", mr: 2, fontSize: { xs: '1rem', md: '1.25rem' } }}>
                 📅 {monthName}
               </Typography>
 

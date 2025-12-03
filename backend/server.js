@@ -7,11 +7,32 @@ const chrono = require('chrono-node');
 const path = require('path');
 const GoogleCalendarService = require('./lib/googleCalendarService');
 const { google } = require("googleapis");
+const multer = require('multer');
+const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 5000;
 
 // Initialize Google Calendar service
 const googleCal = new GoogleCalendarService({ backendDir: path.resolve(__dirname) });
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: path.join(__dirname, 'data/uploads/'),
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = [
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/x-m4a',
+      'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only audio and video files are allowed.'));
+    }
+  }
+});
 
 // In-memory storage for notes (in a real app, you'd use a database)
 let notes = [];
@@ -270,6 +291,63 @@ app.post('/api/ai/enhance', async (req, res) => {
   }
 });
 
+app.post('/api/ai/quote', async (req, res) => {
+  try {
+    const { mood } = req.body;
+    const { quote, error } = await aiUtils.generateQuote(mood || 'motivational');
+    if (error) return res.status(500).json({ error });
+    res.json({ quote });
+  } catch (error) {
+    console.error('AI quote error:', error.message || error);
+    res.status(500).json({ error: error.message || 'Failed to generate quote' });
+  }
+});
+
+app.post('/api/ai/meeting-summary', async (req, res) => {
+  try {
+    const { content } = req.body;
+    const { summary, error } = await aiUtils.summarizeMeeting(content);
+    if (error) return res.status(500).json({ error });
+    res.json({ summary });
+  } catch (error) {
+    console.error('AI meeting summary error:', error.message || error);
+    res.status(500).json({ error: error.message || 'Failed to generate meeting summary' });
+  }
+});
+
+app.post('/api/ai/transcribe-video', upload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('📹 Received file:', req.file.originalname, req.file.mimetype);
+
+    const { summary, error } = await aiUtils.transcribeAndSummarize(
+      req.file.path,
+      req.file.mimetype
+    );
+
+    if (error) return res.status(500).json({ error });
+    res.json({ summary });
+  } catch (error) {
+    console.error('AI transcription error:', error.message || error);
+    
+    // Clean up file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupErr) {
+        console.warn('Failed to cleanup file:', cleanupErr.message);
+      }
+    }
+    
+    res.status(500).json({ 
+      error: error.message || 'Failed to transcribe and summarize video' 
+    });
+  }
+});
+
 // Initialize services on startup
 notesService.initialize().catch(console.error);
 aiUtils.initialize()
@@ -324,11 +402,26 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 // Endpoint to check Google Calendar authorization status
-app.get('/api/google/status', (req, res) => {
+app.get('/api/google/status', async (req, res) => {
   try {
-    res.json({ authorized: googleCal.isAuthorized() });
+    if (!googleCal.isAuthorized()) {
+      return res.json({ authorized: false });
+    }
+    
+    // Check if token is still valid
+    const tokenStatus = await googleCal.checkTokenValidity();
+    
+    if (!tokenStatus.valid) {
+      return res.json({ 
+        authorized: false, 
+        reason: tokenStatus.reason 
+      });
+    }
+    
+    res.json({ authorized: true });
   } catch (err) {
-    res.status(500).json({ authorized: false, error: err.message || err });
+    console.error('Status check error:', err);
+    res.json({ authorized: false, error: err.message });
   }
 });
 

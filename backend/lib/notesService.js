@@ -1,95 +1,142 @@
-const fs = require('fs').promises;
-const path = require('path');
+const Note = require('../models/Note');
+const database = require('./database');
 
 class NotesService {
     constructor() {
-        this.filePath = path.join(__dirname, '../data/notes.json');
-        this.notes = [];
         this.initialized = false;
     }
 
     async initialize() {
         if (!this.initialized) {
             try {
-                await this.loadNotes();
+                await database.connect();
                 this.initialized = true;
+                console.log('✅ Notes service initialized with MongoDB');
             } catch (error) {
-                console.error('Error initializing notes service:', error);
-                await this.saveNotes([]);
+                console.error('❌ Error initializing notes service:', error);
+                throw error;
             }
-        }
-    }
-
-    async loadNotes() {
-        try {
-            const data = await fs.readFile(this.filePath, 'utf8');
-            const parsedData = JSON.parse(data);
-            this.notes = parsedData.notes || [];
-            return this.notes;
-        } catch (error) {
-            console.error('Error loading notes:', error);
-            this.notes = [];
-            throw error;
-        }
-    }
-
-    async saveNotes(notes) {
-        try {
-            this.notes = notes;
-            await fs.writeFile(
-                this.filePath,
-                JSON.stringify({ notes }, null, 2),
-                'utf8'
-            );
-        } catch (error) {
-            console.error('Error saving notes:', error);
-            throw error;
         }
     }
 
     async getAllNotes() {
         await this.initialize();
-        return this.notes;
+        try {
+            const notes = await Note.find().sort({ createdAt: -1 });
+            // Convert MongoDB _id to id for frontend compatibility
+            return notes.map(note => ({
+                id: note._id.toString(),
+                content: note.content,
+                color: note.color,
+                link: note.link,
+                calendarEventId: note.calendarEventId,
+                calendarEventUrl: note.calendarEventUrl,
+                isDuplicate: note.isDuplicate,
+                createdAt: note.createdAt,
+                updatedAt: note.updatedAt,
+            }));
+        } catch (error) {
+            console.error('Error fetching notes:', error);
+            throw error;
+        }
     }
 
-    async addNote(note) {
+    async addNote(noteData) {
         await this.initialize();
-        this.notes.unshift(note);
-        await this.saveNotes(this.notes);
-        return note;
+        try {
+            const note = new Note({
+                content: noteData.content,
+                color: noteData.color || '#ffffff',
+                link: noteData.link || null,
+                calendarEventId: noteData.calendarEventId || null,
+                calendarEventUrl: noteData.calendarEventUrl || null,
+                isDuplicate: noteData.isDuplicate || false,
+            });
+            
+            await note.save();
+            
+            return {
+                id: note._id.toString(),
+                content: note.content,
+                color: note.color,
+                link: note.link,
+                calendarEventId: note.calendarEventId,
+                calendarEventUrl: note.calendarEventUrl,
+                isDuplicate: note.isDuplicate,
+                createdAt: note.createdAt,
+                updatedAt: note.updatedAt,
+            };
+        } catch (error) {
+            console.error('Error adding note:', error);
+            throw error;
+        }
     }
 
     async updateNote(id, updatedContent) {
         await this.initialize();
-        const noteIndex = this.notes.findIndex(note => note.id === id);
-        if (noteIndex === -1) {
-            throw new Error('Note not found');
+        try {
+            const note = await Note.findById(id);
+            if (!note) {
+                throw new Error('Note not found');
+            }
+
+            Object.assign(note, updatedContent);
+            note.updatedAt = new Date();
+            await note.save();
+
+            return {
+                id: note._id.toString(),
+                content: note.content,
+                color: note.color,
+                link: note.link,
+                calendarEventId: note.calendarEventId,
+                calendarEventUrl: note.calendarEventUrl,
+                isDuplicate: note.isDuplicate,
+                createdAt: note.createdAt,
+                updatedAt: note.updatedAt,
+            };
+        } catch (error) {
+            console.error('Error updating note:', error);
+            throw error;
         }
-
-        this.notes[noteIndex] = {
-            ...this.notes[noteIndex],
-            ...updatedContent,
-            updatedAt: new Date().toISOString()
-        };
-
-        await this.saveNotes(this.notes);
-        return this.notes[noteIndex];
     }
 
     async deleteNote(id) {
         await this.initialize();
-        const noteIndex = this.notes.findIndex(note => note.id === id);
-        if (noteIndex === -1) {
-            throw new Error('Note not found');
+        try {
+            const result = await Note.findByIdAndDelete(id);
+            if (!result) {
+                throw new Error('Note not found');
+            }
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            throw error;
         }
-
-        this.notes = this.notes.filter(note => note.id !== id);
-        await this.saveNotes(this.notes);
     }
 
     async getNoteById(id) {
         await this.initialize();
-        return this.notes.find(note => note.id === id) || null;
+        try {
+            const note = await Note.findById(id);
+            if (!note) {
+                return null;
+            }
+
+            return {
+                id: note._id.toString(),
+                content: note.content,
+                color: note.color,
+                link: note.link,
+                calendarEventId: note.calendarEventId,
+                calendarEventUrl: note.calendarEventUrl,
+                isDuplicate: note.isDuplicate,
+                createdAt: note.createdAt,
+                updatedAt: note.updatedAt,
+            };
+        } catch (error) {
+            console.error('Error fetching note by ID:', error);
+            return null;
+        }
     }
 }
 

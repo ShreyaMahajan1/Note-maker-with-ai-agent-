@@ -13,6 +13,7 @@ import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // your subtle texture background (uploaded file)
 const BACKGROUND_IMAGE = "/mnt/data/2fc43379-e6d5-4660-a04b-fd9e44429174.png";
@@ -21,6 +22,8 @@ const InspirationCard = () => {
   const [currentContent, setCurrentContent] = useState(null);
   const [fadeIn, setFadeIn] = useState(true);
   const [contentType, setContentType] = useState("quote");
+  const [loading, setLoading] = useState(false);
+  const [selectedMood, setSelectedMood] = useState("motivational");
 
   const contentData = {
     quotes: [
@@ -90,13 +93,56 @@ const InspirationCard = () => {
   };
 
   useEffect(() => {
-    setCurrentContent(getDailyContent(contentType));
-  }, [contentType]);
+    const loadContent = async () => {
+      if (contentType === 'quote') {
+        const aiQuote = await fetchAIQuote(selectedMood);
+        setCurrentContent(aiQuote || getDailyContent(contentType));
+      } else {
+        setCurrentContent(getDailyContent(contentType));
+      }
+    };
+    loadContent();
+  }, [contentType, selectedMood]);
 
-  const handleRefresh = () => {
+  const fetchAIQuote = async (mood = 'motivational') => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/api/ai/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mood })
+      });
+      const data = await response.json();
+      if (data.quote) {
+        return { text: data.quote, author: 'AI Generated', icon: '🤖' };
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI quote:', error);
+    } finally {
+      setLoading(false);
+    }
+    return null;
+  };
+
+  const handleRefresh = async () => {
     setFadeIn(false);
-    setTimeout(() => {
-      setCurrentContent(getRandomContent(contentType));
+    setTimeout(async () => {
+      if (contentType === 'quote') {
+        const aiQuote = await fetchAIQuote(selectedMood);
+        setCurrentContent(aiQuote || getRandomContent(contentType));
+      } else {
+        setCurrentContent(getRandomContent(contentType));
+      }
+      setFadeIn(true);
+    }, 300);
+  };
+
+  const handleMoodChange = async (mood) => {
+    setSelectedMood(mood);
+    setFadeIn(false);
+    setTimeout(async () => {
+      const aiQuote = await fetchAIQuote(mood);
+      setCurrentContent(aiQuote || getRandomContent(contentType));
       setFadeIn(true);
     }, 300);
   };
@@ -227,18 +273,52 @@ const InspirationCard = () => {
         {/* Content */}
         <Fade in={fadeIn} timeout={500}>
           <Box sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center", py: 2 }}>
-            {currentContent && (
-              <>
+            {loading ? (
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <CircularProgress 
+                  sx={{ 
+                    color: "rgba(255,255,255,0.9)",
+                  }} 
+                  size={40}
+                />
                 <Typography
                   sx={{
-                    fontSize: "2.6rem",
-                    mb: 2,
-                    lineHeight: 1,
-                    filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.15))",
+                    fontSize: "0.9rem",
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.85)",
+                    textShadow: "0 2px 8px rgba(0,0,0,0.2)",
                   }}
                 >
-                  {currentContent.icon}
+                  Generating {selectedMood} quote...
                 </Typography>
+              </Box>
+            ) : currentContent && (
+              <>
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.15)",
+                    backdropFilter: "blur(10px)",
+                    border: "2px solid rgba(255, 255, 255, 0.3)",
+                    mb: 2,
+                    mx: "auto",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "2.6rem",
+                      lineHeight: 1,
+                      filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.2))",
+                    }}
+                  >
+                    {currentContent.icon}
+                  </Typography>
+                </Box>
 
                 <Typography
                   sx={{
@@ -274,6 +354,41 @@ const InspirationCard = () => {
             )}
           </Box>
         </Fade>
+
+        {/* Mood Selector (only for quotes) */}
+        {contentType === "quote" && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              justifyContent: "center",
+              flexWrap: "wrap",
+              mb: 1,
+            }}
+          >
+            {["motivational", "calm", "happy", "focused", "creative"].map((mood) => (
+              <Chip
+                key={mood}
+                label={mood}
+                size="small"
+                onClick={() => handleMoodChange(mood)}
+                sx={{
+                  backgroundColor: selectedMood === mood ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.12)",
+                  color: "white",
+                  fontWeight: selectedMood === mood ? 700 : 500,
+                  fontSize: "0.7rem",
+                  backdropFilter: "blur(6px)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  cursor: "pointer",
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,0.25)",
+                  },
+                  textTransform: "capitalize",
+                }}
+              />
+            ))}
+          </Box>
+        )}
 
         {/* Type Selector */}
         <Box

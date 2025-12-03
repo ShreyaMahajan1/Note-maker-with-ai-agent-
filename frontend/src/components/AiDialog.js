@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -9,7 +9,10 @@ import {
   Box,
   Typography,
   CircularProgress,
+  Divider,
 } from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import VideoFileIcon from "@mui/icons-material/VideoFile";
 
 export function AiDialog({
   open,
@@ -23,37 +26,64 @@ export function AiDialog({
   inputValue,
   onInputChange,
   submitLabel,
+  showFileUpload = false,
+  onFileUpload,
 }) {
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleFileUploadClick = () => {
+    if (selectedFile && onFileUpload) {
+      onFileUpload(selectedFile);
+      setSelectedFile(null);
+    }
+  };
+
+  const handleClose = () => {
+    setSelectedFile(null);
+    onClose();
+  };
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 2,
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
+          borderRadius: 4,
+          background: "rgba(30, 41, 59, 0.95)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(139, 92, 246, 0.3)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
         },
       }}
     >
       <DialogTitle
         sx={{
-          borderBottom: "1px solid",
-          borderColor: "grey.200",
+          borderBottom: "1px solid rgba(139, 92, 246, 0.3)",
           display: "flex",
           alignItems: "center",
           gap: 1,
-          "& .MuiTypography-root": {
-            fontWeight: 600,
-            color: "primary.main",
-          },
         }}
       >
-        <Typography variant="h6">{title}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: "#f1f5f9" }}>
+          {title}
+        </Typography>
       </DialogTitle>
-      <DialogContent sx={{ py: 3 }}>
+      <DialogContent sx={{ 
+        py: 3,
+        scrollbarWidth: "none",
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
+      }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Box sx={{ mt: 2 }}>
             <TextField
@@ -68,25 +98,136 @@ export function AiDialog({
               InputLabelProps={{
                 shrink: Boolean(inputValue),
                 sx: {
-                  color: "text.secondary",
+                  color: "#94a3b8",
                   fontWeight: 600,
-                  "&.Mui-focused": { color: "primary.main" },
+                  "&.Mui-focused": { color: "#8b5cf6" },
                   transformOrigin: "left top",
                 },
               }}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  backgroundColor: "grey.50",
+                  backgroundColor: "rgba(15, 23, 42, 0.5)",
+                  color: "#f1f5f9",
+                  borderRadius: 3,
+                  "& fieldset": {
+                    borderColor: "rgba(139, 92, 246, 0.3)",
+                  },
                   "&:hover fieldset": {
-                    borderColor: "primary.light",
+                    borderColor: "#8b5cf6",
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: "primary.main",
+                    borderColor: "#8b5cf6",
+                    borderWidth: 2,
                   },
+                  "& textarea": {
+                    scrollbarWidth: "none",
+                    "&::-webkit-scrollbar": {
+                      display: "none",
+                    },
+                  },
+                },
+                "& .MuiOutlinedInput-input": {
+                  color: "#f1f5f9",
                 },
               }}
             />
           </Box>
+
+          {showFileUpload && (
+            <>
+              <Divider sx={{ borderColor: "rgba(139, 92, 246, 0.3)" }}>
+                <Typography sx={{ color: "#94a3b8", fontSize: "0.85rem", fontWeight: 600 }}>
+                  OR
+                </Typography>
+              </Divider>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  p: 2.5,
+                  borderRadius: 3,
+                  background: "rgba(15, 23, 42, 0.5)",
+                  border: "2px dashed rgba(139, 92, 246, 0.3)",
+                }}
+              >
+                <Typography sx={{ color: "#cbd5e1", fontWeight: 600, fontSize: "0.9rem" }}>
+                  📹 Upload Video/Audio Recording
+                </Typography>
+                <Typography sx={{ color: "#94a3b8", fontSize: "0.85rem" }}>
+                  Supported: MP4, WebM, MOV, MP3, WAV, M4A (Max 100MB)
+                </Typography>
+
+                <input
+                  accept="video/*,audio/*"
+                  style={{ display: "none" }}
+                  id="video-upload-input"
+                  type="file"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="video-upload-input">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    startIcon={<CloudUploadIcon />}
+                    fullWidth
+                    sx={{
+                      borderRadius: 3,
+                      borderColor: "rgba(139, 92, 246, 0.5)",
+                      color: "#cbd5e1",
+                      py: 1.5,
+                      "&:hover": {
+                        borderColor: "#8b5cf6",
+                        backgroundColor: "rgba(139, 92, 246, 0.1)",
+                      },
+                    }}
+                  >
+                    Choose File
+                  </Button>
+                </label>
+
+                {selectedFile && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      p: 2,
+                      borderRadius: 2,
+                      background: "rgba(139, 92, 246, 0.1)",
+                      border: "1px solid rgba(139, 92, 246, 0.3)",
+                    }}
+                  >
+                    <VideoFileIcon sx={{ color: "#8b5cf6", fontSize: 28 }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ color: "#f1f5f9", fontWeight: 600, fontSize: "0.9rem" }}>
+                        {selectedFile.name}
+                      </Typography>
+                      <Typography sx={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                        {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleFileUploadClick}
+                      disabled={loading}
+                      sx={{
+                        borderRadius: 2,
+                        background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+                        "&:hover": {
+                          background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)",
+                        },
+                      }}
+                    >
+                      Process
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </>
+          )}
 
           {loading && (
             <Box
@@ -95,13 +236,13 @@ export function AiDialog({
                 alignItems: "center",
                 gap: 2,
                 p: 2,
-                borderRadius: 1,
-                backgroundColor: "primary.50",
-                color: "primary.main",
+                borderRadius: 3,
+                background: "rgba(139, 92, 246, 0.1)",
+                border: "1px solid rgba(139, 92, 246, 0.3)",
               }}
             >
-              <CircularProgress size={24} color="primary" />
-              <Typography sx={{ fontWeight: 500 }}>
+              <CircularProgress size={24} sx={{ color: "#8b5cf6" }} />
+              <Typography sx={{ fontWeight: 500, color: "#f1f5f9" }}>
                 Processing with AI...
               </Typography>
             </Box>
@@ -111,11 +252,16 @@ export function AiDialog({
             <Box
               sx={{
                 p: 2.5,
-                borderRadius: 2,
-                backgroundColor: "grey.50",
-                border: "1px solid",
-                borderColor: "primary.light",
+                borderRadius: 3,
+                background: "rgba(15, 23, 42, 0.5)",
+                border: "1px solid rgba(139, 92, 246, 0.3)",
                 position: "relative",
+                maxHeight: "400px",
+                overflowY: "auto",
+                scrollbarWidth: "none",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
                 "&::before": {
                   content: '""',
                   position: "absolute",
@@ -123,8 +269,7 @@ export function AiDialog({
                   left: 0,
                   right: 0,
                   height: "4px",
-                  background:
-                    "linear-gradient(90deg, primary.main, primary.light)",
+                  background: "linear-gradient(90deg, #8b5cf6, #ec4899)",
                   borderTopLeftRadius: "inherit",
                   borderTopRightRadius: "inherit",
                 },
@@ -133,7 +278,7 @@ export function AiDialog({
               <Typography
                 sx={{
                   whiteSpace: "pre-wrap",
-                  color: "text.primary",
+                  color: "#f1f5f9",
                   lineHeight: 1.6,
                 }}
               >
@@ -146,21 +291,20 @@ export function AiDialog({
       <DialogActions
         sx={{
           p: 2.5,
-          borderTop: "1px solid",
-          borderColor: "grey.200",
+          borderTop: "1px solid rgba(139, 92, 246, 0.3)",
         }}
       >
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           variant="outlined"
           sx={{
-            borderRadius: 2,
+            borderRadius: 3,
             minWidth: "100px",
-            borderColor: "grey.300",
-            color: "text.secondary",
+            borderColor: "rgba(139, 92, 246, 0.5)",
+            color: "#cbd5e1",
             "&:hover": {
-              borderColor: "grey.400",
-              backgroundColor: "grey.50",
+              borderColor: "#8b5cf6",
+              backgroundColor: "rgba(139, 92, 246, 0.1)",
             },
           }}
         >
@@ -169,13 +313,15 @@ export function AiDialog({
         <Button
           onClick={onSubmit}
           variant="contained"
-          disabled={loading}
+          disabled={loading || !inputValue}
           sx={{
-            borderRadius: 2,
+            borderRadius: 3,
             minWidth: "100px",
-            boxShadow: "none",
+            background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+            boxShadow: "0 4px 16px rgba(139, 92, 246, 0.4)",
             "&:hover": {
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+              background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)",
+              boxShadow: "0 6px 20px rgba(139, 92, 246, 0.5)",
             },
           }}
         >
