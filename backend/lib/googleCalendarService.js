@@ -239,19 +239,19 @@
 const fs = require('fs');
 const path = require('path');
 const { google } = require('googleapis');
+const Token = require('../models/Token');
 
 class GoogleCalendarService {
   constructor({ backendDir }) {
     this.backendDir = backendDir;
     this.credentialsPath = path.join(backendDir, 'credentials.json');
-    this.tokenPath = path.join(backendDir, 'token.json');
     this.oauth2Client = null;
     this.calendar = null;
 
     this._initClient();
   }
 
-  _initClient() {
+  async _initClient() {
     try {
       if (!fs.existsSync(this.credentialsPath)) {
         console.warn('⚠️ credentials.json not found at', this.credentialsPath);
@@ -267,16 +267,53 @@ class GoogleCalendarService {
         creds.redirect_uris[0]
       );
 
-      if (fs.existsSync(this.tokenPath)) {
-        const token = JSON.parse(fs.readFileSync(this.tokenPath, 'utf8'));
-        this.oauth2Client.setCredentials(token);
-        this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
-        console.log('✅ Google Calendar initialized with existing token');
-      } else {
-        console.log('ℹ️ No token.json found. OAuth2 login required.');
+      // Set up automatic token refresh
+      this.oauth2Client.on('tokens', async (tokens) => {
+        console.log('🔄 Token refreshed automatically');
+        await this._saveTokenToDb(tokens);
+      });
+
+      // Try to load token from MongoDB
+      try {
+        const tokenDoc = await Token.findOne({ service: 'google_calendar' });
+        if (tokenDoc) {
+          const token = {
+            access_token: tokenDoc.accessToken,
+            refresh_token: tokenDoc.refreshToken,
+            expiry_date: tokenDoc.expiryDate,
+            scope: tokenDoc.scope,
+            token_type: tokenDoc.tokenType,
+          };
+          this.oauth2Client.setCredentials(token);
+          this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+          console.log('✅ Google Calendar initialized with token from MongoDB');
+        } else {
+          console.log('ℹ️ No token found in MongoDB. OAuth2 login required.');
+        }
+      } catch (dbError) {
+        console.warn('⚠️ Could not load token from MongoDB:', dbError.message);
       }
     } catch (error) {
       console.error('Error initializing Google Calendar:', error.message);
+    }
+  }
+
+  async _saveTokenToDb(tokens) {
+    try {
+      await Token.findOneAndUpdate(
+        { service: 'google_calendar' },
+        {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token || undefined,
+          expiryDate: tokens.expiry_date,
+          scope: tokens.scope,
+          tokenType: tokens.token_type,
+        },
+        { upsert: true, new: true }
+      );
+      console.log('✅ Token saved to MongoDB');
+    } catch (error) {
+      console.error('❌ Failed to save token to MongoDB:', error.message);
     }
   }
 
@@ -298,10 +335,12 @@ class GoogleCalendarService {
       
       // Check if it's an auth error
       if (error.code === 401 || error.message.includes('invalid') || error.message.includes('expired')) {
-        // Clear the invalid token
-        if (fs.existsSync(this.tokenPath)) {
-          fs.unlinkSync(this.tokenPath);
-          console.log('🗑️ Removed expired token');
+        // Clear the invalid token from MongoDB
+        try {
+          await Token.deleteOne({ service: 'google_calendar' });
+          console.log('🗑️ Removed expired token from MongoDB');
+        } catch (dbError) {
+          console.warn('⚠️ Could not delete token from MongoDB:', dbError.message);
         }
         this.calendar = null;
         return { valid: false, reason: 'token_expired' };
@@ -321,9 +360,12 @@ class GoogleCalendarService {
   async handleOAuthCallback(code) {
     const { tokens } = await this.oauth2Client.getToken(code);
     this.oauth2Client.setCredentials(tokens);
-    fs.writeFileSync(this.tokenPath, JSON.stringify(tokens));
+    
+    // Save to MongoDB instead of file
+    await this._saveTokenToDb(tokens);
+    
     this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
-    console.log('✅ OAuth token saved');
+    console.log('✅ OAuth token saved to MongoDB');
   }
 
   async eventExists({ summary, startDate, endDate }) {
