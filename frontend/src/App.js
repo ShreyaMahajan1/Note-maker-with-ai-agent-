@@ -58,6 +58,7 @@ import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import CalendarView from "./components/CalendarView";
 import "./App.css";
 import InspirationCard from "./components/inspirationCard";
+import API_BASE_URL from "./config";
 
 const theme = createTheme({
   palette: {
@@ -312,7 +313,7 @@ function App() {
 
   const fetchNotes = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/notes");
+      const response = await fetch(`${API_BASE_URL}/api/notes`);
       const data = await response.json();
       setNotes(data);
     } catch (error) {
@@ -323,7 +324,7 @@ function App() {
 
   const checkGoogleAuthStatus = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/google/status");
+      const response = await fetch(`${API_BASE_URL}/api/google/status`);
       const data = await response.json();
       
       const isAuthorized = data.authorized || false;
@@ -352,8 +353,8 @@ function App() {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/api/test"),
-      fetch("http://localhost:5000/api/notes"),
+      fetch(`${API_BASE_URL}/api/test`),
+      fetch(`${API_BASE_URL}/api/notes`),
     ])
       .then(([resTest, resNotes]) =>
         Promise.all([resTest.json(), resNotes.json()])
@@ -379,7 +380,7 @@ function App() {
     if (note.trim()) {
       setLoadingNotes(true);
       try {
-        const response = await fetch("http://localhost:5000/api/notes", {
+        const response = await fetch(`${API_BASE_URL}/api/notes`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -432,7 +433,7 @@ function App() {
   const handleDeleteNote = async (id) => {
     try {
       setNotes(notes.filter((note) => note.id !== id));
-      const response = await fetch(`http://localhost:5000/api/notes/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/notes/${id}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -491,7 +492,7 @@ function App() {
       const formData = new FormData();
       formData.append('video', file);
 
-      const response = await fetch('http://localhost:5000/api/ai/transcribe-video', {
+      const response = await fetch(`${API_BASE_URL}/api/ai/transcribe-video`, {
         method: 'POST',
         body: formData,
       });
@@ -517,7 +518,7 @@ function App() {
     setAiLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/ai/${aiDialogType}`,
+        `${API_BASE_URL}/api/ai/${aiDialogType}`,
         {
           method: "POST",
           headers: {
@@ -573,7 +574,7 @@ function App() {
     if (!noteId) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/api/notes/${noteId}`,
+        `${API_BASE_URL}/api/notes/${noteId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -1085,7 +1086,7 @@ function App() {
 
             <Button
               onClick={() => {
-                window.open("http://localhost:5000/auth/google", "_blank");
+                window.open(`${API_BASE_URL}/auth/google`, "_blank");
                 const statusCheckInterval = setInterval(() => {
                   checkGoogleAuthStatus();
                 }, 2000);
@@ -2212,7 +2213,7 @@ function App() {
             setNote(content);
             setLoadingNotes(true);
             try {
-              const response = await fetch("http://localhost:5000/api/notes", {
+              const response = await fetch(`${API_BASE_URL}/api/notes`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
