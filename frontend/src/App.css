@@ -25,13 +25,13 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  background: #615af1;
   border-radius: 10px;
   transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+  background: #4a47d1;
 }
 
 /* Fade animations */

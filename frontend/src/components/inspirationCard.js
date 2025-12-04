@@ -160,15 +160,15 @@ const InspirationCard = () => {
  const getGradient = () => {
   switch (contentType) {
     case "quote":
-      return "linear-gradient(135deg, #9B7EDE 0%, #CFA6FF 100%)"; 
+      return "linear-gradient(135deg, #615af1 0%, #8b7ef5 100%)"; 
     case "prompt":
-      return "linear-gradient(135deg, #ec5381ff 0%, #FF7AA5 100%)"; 
+      return "linear-gradient(135deg, #615af1 0%, #7d73f3 100%)"; 
     case "fact":
-      return "linear-gradient(135deg, #1883c5ff 0%, #4BA8F0 100%)"; 
+      return "linear-gradient(135deg, #4a47d1 0%, #615af1 100%)"; 
     case "tip":
-      return "linear-gradient(135deg, #06462eff 0%, #1eb988ff 100%)"; 
+      return "linear-gradient(135deg, #5651e0 0%, #615af1 100%)"; 
     default:
-      return "linear-gradient(135deg, #9B7EDE 0%, #CFA6FF 100%)";
+      return "linear-gradient(135deg, #615af1 0%, #8b7ef5 100%)";
   }
 };
 
@@ -188,23 +188,24 @@ const InspirationCard = () => {
     <Card
       elevation={0}
       sx={{
-        // responsive min-height so the card is taller on desktop and still okay on mobile
-        minHeight: { xs: "260px", md: "380px" }, // <-- increased height
-        height: "100%", // still fills parent if parent defines fixed height
-        // gradient + texture
-        backgroundImage: `${getGradient()}, url(${BACKGROUND_IMAGE})`,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        borderRadius: 3,
+        // Fixed height for consistent card size
+        height: { xs: "260px", md: "380px" },
+        // Same background as other cards
+        background: "rgba(30, 41, 59, 0.8)",
+        borderRadius: 4,
         position: "relative",
         overflow: "hidden",
-        transition: "all 0.5s ease",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         /* GLASSMORPHISM */
-        border: "1px solid rgba(255,255,255,0.14)",
-        boxShadow: "0 8px 30px rgba(16, 24, 40, 0.06)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+        border: "1px solid rgba(139, 92, 246, 0.2)",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: "0 12px 40px rgba(97, 90, 241, 0.4)",
+          borderColor: "rgba(97, 90, 241, 0.5)",
+        },
         // soft highlight
         "&::before": {
           content: '""',
@@ -272,7 +273,15 @@ const InspirationCard = () => {
 
         {/* Content */}
         <Fade in={fadeIn} timeout={500}>
-          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center", py: 2 }}>
+          <Box sx={{ 
+            flex: 1, 
+            display: "flex", 
+            flexDirection: "column", 
+            justifyContent: "center", 
+            textAlign: "center", 
+            py: 2,
+            overflow: "hidden", // Prevent content from expanding card
+          }}>
             {loading ? (
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                 <CircularProgress 
@@ -322,15 +331,20 @@ const InspirationCard = () => {
 
                 <Typography
                   sx={{
-                    fontSize: "1.08rem",
+                    fontSize: { xs: "0.95rem", md: "1.08rem" },
                     fontWeight: 800,
                     color: "rgba(255,255,255,0.97)",
-                    lineHeight: 1.6,
-                    mb: currentContent.author ? 2 : 0,
+                    lineHeight: 1.5,
+                    mb: currentContent.author ? 1.5 : 0,
                     px: { xs: 1, sm: 3 },
                     maxWidth: "820px",
                     margin: "0 auto",
                     textShadow: "0 3px 8px rgba(0,0,0,0.22)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "-webkit-box",
+                    WebkitLineClamp: { xs: 4, md: 5 }, // Limit lines to prevent overflow
+                    WebkitBoxOrient: "vertical",
                   }}
                 >
                   {currentContent.text}

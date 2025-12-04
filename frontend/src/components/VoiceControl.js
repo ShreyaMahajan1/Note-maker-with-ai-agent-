@@ -212,7 +212,6 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
             {/* Voice Control Microphone Button */}
             <Tooltip title={isListening ? 'Stop listening' : 'Start voice control'}>
                 <Fab
-                    color={isListening ? 'error' : 'primary'}
                     sx={{
                         position: 'fixed',
                         bottom: 104,
@@ -220,16 +219,21 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                         width: 56,
                         height: 56,
                         zIndex: 1300,
+                        background: isListening ? '#ef4444' : '#615af1',
+                        color: 'white',
                         animation: isListening ? 'pulse 1s infinite' : 'none',
+                        '&:hover': {
+                            background: isListening ? '#dc2626' : '#4a47d1',
+                        },
                         '@keyframes pulse': {
                             '0%': {
-                                boxShadow: '0 0 0 0 rgba(244, 67, 54, 0.7)',
+                                boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.7)',
                             },
                             '70%': {
-                                boxShadow: '0 0 0 10px rgba(244, 67, 54, 0)',
+                                boxShadow: '0 0 0 10px rgba(239, 68, 68, 0)',
                             },
                             '100%': {
-                                boxShadow: '0 0 0 0 rgba(244, 67, 54, 0)',
+                                boxShadow: '0 0 0 0 rgba(239, 68, 68, 0)',
                             },
                         }
                     }}

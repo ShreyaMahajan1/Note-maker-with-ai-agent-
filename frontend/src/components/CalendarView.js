@@ -183,6 +183,7 @@ const CalendarView = ({ googleAuthorized }) => {
 
   // Clicking day opens Day View
   const openDayView = (dateObj) => {
+    setSelectedEvent(null); // Close any open event popup
     setDayForDayView(dateObj);
     setViewMode("day");
   };

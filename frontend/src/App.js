@@ -789,10 +789,10 @@ function App() {
           borderRadius: "10px",
         },
         "&::-webkit-scrollbar-thumb": {
-          background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+          background: "#615af1",
           borderRadius: "10px",
           "&:hover": {
-            background: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)",
+            background: "#4a47d1",
           },
         },
       }}
@@ -822,7 +822,7 @@ function App() {
               borderRadius: 3,
               background:
                 selectedCategory === category 
-                  ? "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)"
+                  ? "#615af1"
                   : "transparent",
               color: selectedCategory === category ? "white" : "#cbd5e1",
               cursor: "pointer",
@@ -830,18 +830,12 @@ function App() {
               fontSize: "0.9rem",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               border: "1px solid transparent",
-              boxShadow: selectedCategory === category 
-                ? "0 4px 16px rgba(139, 92, 246, 0.4)"
-                : "none",
               "&:hover": {
                 background:
                   selectedCategory === category 
-                    ? "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)"
-                    : "rgba(139, 92, 246, 0.2)",
+                    ? "#4a47d1"
+                    : "rgba(97, 90, 241, 0.2)",
                 transform: "translateX(4px)",
-                boxShadow: selectedCategory === category
-                  ? "0 6px 20px rgba(139, 92, 246, 0.5)"
-                  : "0 2px 8px rgba(139, 92, 246, 0.2)",
               },
             }}
           >
@@ -859,41 +853,7 @@ function App() {
           flexGrow: 1,
           minHeight: "100vh",
           position: "relative",
-          background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: `
-              radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15), transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.15), transparent 50%),
-              radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.15), transparent 50%)
-            `,
-            animation: "gradient 15s ease infinite",
-            zIndex: 0,
-          },
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.2)",
-            backdropFilter: "blur(100px)",
-            zIndex: 0,
-          },
-          "@keyframes gradient": {
-            "0%, 100%": {
-              opacity: 1,
-            },
-            "50%": {
-              opacity: 0.7,
-            },
-          },
+          background: "#0f172a",
         }}
       >
         <AppBar
@@ -954,13 +914,12 @@ function App() {
             >
               <Box
                 sx={{
-                  background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+                  background: "#615af1",
                   borderRadius: "12px",
                   p: 0.8,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: "0 4px 20px rgba(139, 92, 246, 0.4)",
                 }}
               >
                 <SmartToyIcon sx={{ 
@@ -1089,10 +1048,23 @@ function App() {
             <Button
               onClick={() => {
                 window.open(`${API_BASE_URL}/auth/google`, "_blank");
-                const statusCheckInterval = setInterval(() => {
-                  checkGoogleAuthStatus();
-                }, 2000);
-                setTimeout(() => clearInterval(statusCheckInterval), 30000);
+                
+                // Check status more frequently
+                const statusCheckInterval = setInterval(async () => {
+                  await checkGoogleAuthStatus();
+                }, 1000);
+                
+                // Also check when user returns to this tab
+                const handleFocus = async () => {
+                  await checkGoogleAuthStatus();
+                };
+                window.addEventListener('focus', handleFocus);
+                
+                // Clean up after 30 seconds
+                setTimeout(() => {
+                  clearInterval(statusCheckInterval);
+                  window.removeEventListener('focus', handleFocus);
+                }, 30000);
               }}
               variant="contained"
               sx={{
@@ -1103,22 +1075,11 @@ function App() {
                 py: { xs: 0.75, sm: 1, md: 1.2 },
                 fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.9rem" },
                 minWidth: { xs: "90px", sm: "120px", md: "150px" },
-                background: googleAuthorized 
-                  ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
-                  : "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+                background: "#615af1",
                 color: "white",
-                boxShadow: googleAuthorized
-                  ? "0 4px 20px rgba(16, 185, 129, 0.4)"
-                  : "0 4px 20px rgba(139, 92, 246, 0.4)",
                 border: "none",
                 "&:hover": {
-                  background: googleAuthorized
-                    ? "linear-gradient(135deg, #059669 0%, #047857 100%)"
-                    : "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)",
-                  transform: "translateY(-2px)",
-                  boxShadow: googleAuthorized
-                    ? "0 6px 24px rgba(16, 185, 129, 0.5)"
-                    : "0 6px 24px rgba(255, 255, 255, 0.4)",
+                  background: "#4a47d1",
                 },
               }}
               disabled={checkingGoogleAuth}
@@ -1154,7 +1115,7 @@ function App() {
               mb: 2,
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 700, color: "#e60023" }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: "#615af1" }}>
               Categories
             </Typography>
             <IconButton onClick={() => setSidebarOpen(false)}>
@@ -1175,8 +1136,9 @@ function App() {
             "& .MuiSpeedDial-fab": {
               width: 64,
               height: 64,
+              background: "#615af1",
               "&:hover": {
-                backgroundColor: "primary.dark",
+                background: "#4a47d1",
               },
             },
           }}
@@ -1229,7 +1191,7 @@ function App() {
               borderRadius: 3,
               cursor: "pointer",
               zIndex: 1200,
-              background: "rgba(30, 41, 59, 0.9)",
+              background: "rgba(30, 41, 59, 0.8)",
               backdropFilter: "blur(20px)",
               border: "1px solid rgba(139, 92, 246, 0.3)",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
@@ -1288,7 +1250,7 @@ function App() {
           maxWidth="sm"
           PaperProps={{
             sx: {
-              background: 'rgba(30, 41, 59, 0.95)',
+              background: 'rgba(30, 41, 59, 0.8)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(139, 92, 246, 0.3)',
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
@@ -1460,7 +1422,7 @@ function App() {
                                 handleAddNote()
                               }
                               sx={{
-                                backgroundColor: selectedColor === "#ffffff" ? "rgba(30, 41, 59, 0.6)" : selectedColor,
+                                backgroundColor: "rgba(30, 41, 59, 0.8)",
                                 "& .MuiOutlinedInput-root": {
                                   borderRadius: 3,
                                   border: "1px solid rgba(139, 92, 246, 0.3)",
@@ -1503,7 +1465,7 @@ function App() {
                                 ),
                               }}
                               sx={{
-                                backgroundColor: "rgba(30, 41, 59, 0.6)",
+                                backgroundColor: "rgba(30, 41, 59, 0.8)",
                                 "& .MuiOutlinedInput-root": {
                                   borderRadius: 3,
                                   border: "1px solid rgba(139, 92, 246, 0.3)",
@@ -1564,10 +1526,9 @@ function App() {
                                 height: "100%",
                                 flex: { xs: 1, sm: "none" },
                                 borderRadius: 2,
-                                backgroundColor: "#e60023",
+                                backgroundColor: "#615af1",
                                 "&:hover": {
-                                  backgroundColor: "#ad081b",
-                                  boxShadow: "0 4px 16px rgba(230, 0, 35, 0.3)",
+                                  backgroundColor: "#4a47d1",
                                 },
                               }}
                             >
@@ -1636,8 +1597,8 @@ function App() {
                               <Card
                                 key={note.id}
                                 sx={{
-                                  backgroundColor: note.color === "#ffffff" ? "rgba(30, 41, 59, 0.8)" : note.color,
-                                  backdropFilter: "blur(10px)",
+                                  backgroundColor: "rgba(30, 41, 59, 0.8)",
+                                  backdropFilter: "blur(20px)",
                                   border: "1px solid rgba(139, 92, 246, 0.2)",
                                   height: { xs: 200, md: 220 },
                                   position: "relative",
@@ -1683,7 +1644,7 @@ function App() {
                                       label={getNoteCategory(note.content)}
                                       size="small"
                                       sx={{
-                                        background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+                                        background: "#615af1",
                                         color: "white",
                                         fontWeight: 700,
                                         fontSize: { xs: "0.6rem", md: "0.65rem" },
@@ -1711,7 +1672,7 @@ function App() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         sx={{
-                                          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                          background: "#615af1",
                                           color: "white",
                                           fontWeight: 700,
                                           fontSize: "0.65rem",
@@ -1863,8 +1824,8 @@ function App() {
                               <Card
                                 key={note.id}
                                 sx={{
-                                  backgroundColor: note.color === "#ffffff" ? "rgba(30, 41, 59, 0.8)" : note.color,
-                                  backdropFilter: "blur(10px)",
+                                  backgroundColor: "rgba(30, 41, 59, 0.8)",
+                                  backdropFilter: "blur(20px)",
                                   border: "1px solid rgba(139, 92, 246, 0.2)",
                                   position: "relative",
                                   overflow: "hidden",
@@ -1916,7 +1877,7 @@ function App() {
                                         label={getNoteCategory(note.content)}
                                         size="small"
                                         sx={{
-                                          background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+                                          background: "#615af1",
                                           color: "white",
                                           fontWeight: 700,
                                           fontSize: "0.7rem",
@@ -1940,8 +1901,8 @@ function App() {
                                           rel="noopener noreferrer"
                                           sx={{
                                             backgroundColor:
-                                              "rgba(26, 115, 232, 0.12)",
-                                            color: "#0d47a1",
+                                              "rgba(97, 90, 241, 0.15)",
+                                            color: "#615af1",
                                             fontWeight: 700,
                                             fontSize: "0.7rem",
                                           }}
@@ -2033,10 +1994,10 @@ function App() {
                                         setAiDialogOpen(true);
                                       }}
                                       sx={{
-                                        color: "#e60023",
+                                        color: "#615af1",
                                         "&:hover": {
                                           backgroundColor:
-                                            "rgba(230, 0, 35, 0.1)",
+                                            "rgba(97, 90, 241, 0.1)",
                                         },
                                       }}
                                     >
@@ -2073,7 +2034,7 @@ function App() {
                               mb: 3,
                               p: 3,
                               background: "rgba(30, 41, 59, 0.8)",
-                              backdropFilter: "blur(10px)",
+                              backdropFilter: "blur(20px)",
                               borderRadius: 4,
                               border: "1px solid rgba(139, 92, 246, 0.2)",
                               boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
@@ -2097,7 +2058,7 @@ function App() {
                                   margin: "0 4px",
                                   border: "1px solid rgba(139, 92, 246, 0.3)",
                                   color: "#f1f5f9",
-                                  background: "rgba(30, 41, 59, 0.5)",
+                                  background: "rgba(30, 41, 59, 0.8)",
                                   transition: "all 0.3s ease",
                                   "&:hover": {
                                     background: "rgba(139, 92, 246, 0.2)",
@@ -2106,12 +2067,11 @@ function App() {
                                   },
                                 },
                                 "& .Mui-selected": {
-                                  background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important",
+                                  background: "#615af1 !important",
                                   color: "white",
                                   border: "none",
-                                  boxShadow: "0 4px 12px rgba(139, 92, 246, 0.4)",
                                   "&:hover": {
-                                    background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%) !important",
+                                    background: "#4a47d1 !important",
                                     transform: "scale(1.05)",
                                   },
                                 },
