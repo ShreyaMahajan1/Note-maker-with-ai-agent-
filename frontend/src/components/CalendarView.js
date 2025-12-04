@@ -148,6 +148,9 @@ const CalendarView = ({ googleAuthorized }) => {
 
   // get events for a particular date object
   function getEventsForDate(dateObj) {
+    // Ensure events is an array
+    if (!Array.isArray(events)) return [];
+    
     return events.filter((ev) => {
       const evStart = ev.start?.dateTime || ev.start?.date;
       if (!evStart) return false;

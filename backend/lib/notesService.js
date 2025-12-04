@@ -24,6 +24,7 @@ class NotesService {
         try {
             const notes = await Note.find().sort({ createdAt: -1 });
             // Convert MongoDB _id to id for frontend compatibility
+            console.log("notes",notes)
             return notes.map(note => ({
                 id: note._id.toString(),
                 content: note.content,
@@ -37,7 +38,8 @@ class NotesService {
             }));
         } catch (error) {
             console.error('Error fetching notes:', error);
-            throw error;
+            // Return empty array instead of throwing to prevent crashes
+            return [];
         }
     }
 

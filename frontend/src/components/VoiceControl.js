@@ -121,7 +121,7 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                 .replace(/note/gi, '')
                 .trim();
 
-            if (content) {
+            if (content && Array.isArray(notes)) {
                 const noteToDelete = notes.find(note =>
                     note.content.toLowerCase().includes(content.toLowerCase())
                 );
@@ -150,7 +150,7 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
         // Edit/update note commands: "edit [note snippet] to [new content]" or "update [note snippet] to [new content]"
         else if (/(?:edit|update)\s+(?:note\s+)?(.+?)\s+to\s+(.+)/i.test(command)) {
             const m = command.match(/(?:edit|update)\s+(?:note\s+)?(.+?)\s+to\s+(.+)/i);
-            if (m && m[1] && m[2]) {
+            if (m && m[1] && m[2] && Array.isArray(notes)) {
                 const search = m[1].trim();
                 const newContent = m[2].trim();
                 const noteToEdit = notes.find(note => note.content.toLowerCase().includes(search.toLowerCase()));
@@ -175,7 +175,7 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
         }
         // List notes command
         else if (command.includes('list') || command.includes('show notes')) {
-            if (notes.length === 0) {
+            if (!Array.isArray(notes) || notes.length === 0) {
                 setFeedback('📝 You have no notes');
                 speak('You have no notes');
             } else {

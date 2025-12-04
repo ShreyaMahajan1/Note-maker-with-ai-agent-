@@ -497,6 +497,12 @@ app.get('/api/notes', async (req, res) => {
   try {
     // Fetch all notes from DB
     const notes = await notesService.getAllNotes();
+    
+    // Ensure notes is an array
+    if (!Array.isArray(notes)) {
+      console.error('getAllNotes did not return an array:', notes);
+      return res.json([]);
+    }
 
     // If Google Calendar is not authorized, just return notes
     if (!googleCal.oauth2Client.credentials?.access_token) {
@@ -545,6 +551,7 @@ app.get('/api/notes', async (req, res) => {
     res.json(enrichedNotes);
   } catch (error) {
     console.error("Error fetching notes:", error);
-    res.status(500).json({ error: "Failed to fetch notes" });
+    // Return empty array instead of error object to prevent frontend crashes
+    res.json([]);
   }
 });

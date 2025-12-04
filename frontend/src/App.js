@@ -360,13 +360,15 @@ function App() {
         Promise.all([resTest.json(), resNotes.json()])
       )
       .then(([dataTest, dataNotes]) => {
+        console.log('API Response:', dataNotes, 'isArray:', Array.isArray(dataNotes));
         setMessage(dataTest.message);
-        setNotes(dataNotes);
+        setNotes(Array.isArray(dataNotes) ? dataNotes : []);
         setLoading(false);
         checkGoogleAuthStatus();
       })
       .catch((error) => {
         console.error("Error:", error);
+        setNotes([]);
         setLoading(false);
         showSnackbar("Failed to load data", "error");
       });
