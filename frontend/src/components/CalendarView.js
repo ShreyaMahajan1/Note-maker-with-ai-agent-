@@ -273,9 +273,12 @@ const CalendarView = ({ googleAuthorized }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{
-                  color: "#1a73e8",
+                  color: "#2dd4bf",
                   textDecoration: "none",
-                  "&:hover": { textDecoration: "underline" },
+                  "&:hover": { 
+                    textDecoration: "underline",
+                    color: "#5eead4",
+                  },
                   wordBreak: "break-all",
                 }}
               >
@@ -425,12 +428,12 @@ const CalendarView = ({ googleAuthorized }) => {
                 sx={{
                   minHeight: { xs: 50, md: 100 },
                   p: { xs: 0.3, md: 1 },
-                  background: isSameDate(dateObj, today) ? "rgba(139, 92, 246, 0.2)" : "rgba(15, 23, 42, 0.5)",
+                  background: isSameDate(dateObj, today) ? "rgba(45, 212, 191, 0.15)" : "rgba(21, 27, 46, 0.5)",
                   borderRadius: { xs: 0.5, md: 1.5 },
-                  border: isSameDate(dateObj, today) ? "2px solid #8b5cf6" : "1px solid rgba(139, 92, 246, 0.2)",
+                  border: isSameDate(dateObj, today) ? "2px solid #2dd4bf" : "1px solid rgba(255, 255, 255, 0.08)",
                   position: "relative",
                   cursor: "pointer",
-                  "&:hover": { background: "rgba(139, 92, 246, 0.15)" },
+                  "&:hover": { background: "rgba(45, 212, 191, 0.1)" },
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -442,7 +445,7 @@ const CalendarView = ({ googleAuthorized }) => {
                   variant="body2"
                   sx={{
                     fontWeight: isSameDate(dateObj, today) ? 700 : 600,
-                    color: isSameDate(dateObj, today) ? "#a78bfa" : "#f1f5f9",
+                    color: isSameDate(dateObj, today) ? "#2dd4bf" : "#e2e8f0",
                     mb: { xs: 0.2, md: 0.5 },
                     fontSize: { xs: '0.65rem', md: '0.875rem' },
                     textAlign: 'center',
@@ -508,11 +511,11 @@ const CalendarView = ({ googleAuthorized }) => {
                 sx={{
                   minHeight: { xs: 100, md: 160 },
                   p: { xs: 0.5, md: 1 },
-                  background: isSameDate(d, today) ? "rgba(139, 92, 246, 0.2)" : "rgba(15, 23, 42, 0.5)",
+                  background: isSameDate(d, today) ? "rgba(45, 212, 191, 0.15)" : "rgba(21, 27, 46, 0.5)",
                   borderRadius: 1.5,
-                  border: isSameDate(d, today) ? "2px solid #8b5cf6" : "1px solid rgba(139, 92, 246, 0.2)",
+                  border: isSameDate(d, today) ? "2px solid #2dd4bf" : "1px solid rgba(255, 255, 255, 0.08)",
                   cursor: "pointer",
-                  "&:hover": { background: "rgba(139, 92, 246, 0.15)" },
+                  "&:hover": { background: "rgba(45, 212, 191, 0.1)" },
                 }}
                 onClick={() => openDayView(d)}
               >
@@ -576,11 +579,11 @@ const CalendarView = ({ googleAuthorized }) => {
                 flexDirection: { xs: 'column', md: 'row' }, 
                 alignItems: { xs: 'flex-start', md: 'center' }, 
                 gap: 1,
-                background: "rgba(15, 23, 42, 0.5)",
-                border: "1px solid rgba(139, 92, 246, 0.2)",
+                background: "rgba(21, 27, 46, 0.5)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
               }}>
                 <Box sx={{ width: { xs: '100%', md: 86 }, textAlign: { xs: 'left', md: 'center' } }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.75rem' }, color: "#a78bfa" }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.75rem' }, color: "#2dd4bf" }}>
                     {ev.start?.dateTime ? formatTime(ev.start.dateTime) : "All day"}
                   </Typography>
                 </Box>
@@ -733,11 +736,11 @@ const CalendarView = ({ googleAuthorized }) => {
   return (
     <Paper sx={{ 
       p: { xs: 1.5, md: 3 }, 
-      borderRadius: 4, 
-      border: "1px solid rgba(139, 92, 246, 0.2)", 
+      borderRadius: 3, 
+      border: "1px solid rgba(255, 255, 255, 0.08)", 
       position: "relative", 
       overflow: 'hidden',
-      background: "rgba(30, 41, 59, 0.8)",
+      background: "rgba(21, 27, 46, 0.7)",
       backdropFilter: "blur(20px)",
       boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
     }}>
@@ -745,9 +748,9 @@ const CalendarView = ({ googleAuthorized }) => {
         <Paper sx={{ 
           p: 4, 
           textAlign: "center", 
-          borderRadius: 4,
-          background: "rgba(15, 23, 42, 0.5)",
-          border: "1px solid rgba(139, 92, 246, 0.2)",
+          borderRadius: 3,
+          background: "rgba(21, 27, 46, 0.5)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
         }}>
           <EventIcon sx={{ fontSize: 60, color: "#64748b", mb: 2 }} />
           <Typography variant="h6" sx={{ color: "#cbd5e1" }}>
@@ -771,14 +774,36 @@ const CalendarView = ({ googleAuthorized }) => {
                   variant={viewMode === "month" ? "filled" : "outlined"}
                   onClick={() => setViewMode("month")}
                   size="small"
-                  sx={{ mr: 0.5, fontSize: { xs: '0.7rem', md: '0.8125rem' } }}
+                  sx={{ 
+                    mr: 0.5, 
+                    fontSize: { xs: '0.7rem', md: '0.8125rem' },
+                    backgroundColor: viewMode === "month" ? "rgba(45, 212, 191, 0.15)" : "transparent",
+                    color: viewMode === "month" ? "#2dd4bf" : "#94a3b8",
+                    borderColor: viewMode === "month" ? "rgba(45, 212, 191, 0.4)" : "rgba(255, 255, 255, 0.1)",
+                    fontWeight: 600,
+                    "&:hover": {
+                      backgroundColor: viewMode === "month" ? "rgba(45, 212, 191, 0.2)" : "rgba(45, 212, 191, 0.08)",
+                      borderColor: "rgba(45, 212, 191, 0.4)",
+                    }
+                  }}
                 />
                 <Chip
                   label="Week"
                   variant={viewMode === "week" ? "filled" : "outlined"}
                   onClick={() => setViewMode("week")}
                   size="small"
-                  sx={{ mr: 0.5, fontSize: { xs: '0.7rem', md: '0.8125rem' } }}
+                  sx={{ 
+                    mr: 0.5, 
+                    fontSize: { xs: '0.7rem', md: '0.8125rem' },
+                    backgroundColor: viewMode === "week" ? "rgba(45, 212, 191, 0.15)" : "transparent",
+                    color: viewMode === "week" ? "#2dd4bf" : "#94a3b8",
+                    borderColor: viewMode === "week" ? "rgba(45, 212, 191, 0.4)" : "rgba(255, 255, 255, 0.1)",
+                    fontWeight: 600,
+                    "&:hover": {
+                      backgroundColor: viewMode === "week" ? "rgba(45, 212, 191, 0.2)" : "rgba(45, 212, 191, 0.08)",
+                      borderColor: "rgba(45, 212, 191, 0.4)",
+                    }
+                  }}
                 />
                 <Chip
                   label="Day"
@@ -788,7 +813,17 @@ const CalendarView = ({ googleAuthorized }) => {
                     setViewMode("day");
                   }}
                   size="small"
-                  sx={{ fontSize: { xs: '0.7rem', md: '0.8125rem' } }}
+                  sx={{ 
+                    fontSize: { xs: '0.7rem', md: '0.8125rem' },
+                    backgroundColor: viewMode === "day" ? "rgba(45, 212, 191, 0.15)" : "transparent",
+                    color: viewMode === "day" ? "#2dd4bf" : "#94a3b8",
+                    borderColor: viewMode === "day" ? "rgba(45, 212, 191, 0.4)" : "rgba(255, 255, 255, 0.1)",
+                    fontWeight: 600,
+                    "&:hover": {
+                      backgroundColor: viewMode === "day" ? "rgba(45, 212, 191, 0.2)" : "rgba(45, 212, 191, 0.08)",
+                      borderColor: "rgba(45, 212, 191, 0.4)",
+                    }
+                  }}
                 />
               </Box>
             </Box>

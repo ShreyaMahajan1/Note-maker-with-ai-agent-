@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 const aiUtils = require('./lib/aiUtils');
 const notesService = require('./lib/notesService');
@@ -37,9 +38,43 @@ const upload = multer({
 // In-memory storage for notes (in a real app, you'd use a database)
 let notes = [];
 
+// Rate Limiters
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // Limit AI requests to 10 per minute
+  message: { error: 'Too many AI requests, please slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit auth attempts to 5 per 15 minutes
+  message: { error: 'Too many authentication attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(generalLimiter); // Apply general rate limiting to all routes
+
+// Error handling middleware for JSON parsing
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON format' });
+  }
+  next();
+});
 
 // Routes
 app.get('/api/test', (req, res) => {
@@ -254,8 +289,8 @@ app.delete('/api/notes/:id', async (req, res) => {
   }
 });
 
-// AI Routes
-app.post('/api/ai/suggest', async (req, res) => {
+// AI Routes (with rate limiting)
+app.post('/api/ai/suggest', aiLimiter, async (req, res) => {
   try {
     const { prompt } = req.body;
     const { suggestion, error } = await aiUtils.generateNoteSuggestion(prompt);
@@ -267,7 +302,7 @@ app.post('/api/ai/suggest', async (req, res) => {
   }
 });
 
-app.post('/api/ai/categorize', async (req, res) => {
+app.post('/api/ai/categorize', aiLimiter, async (req, res) => {
   try {
     const { content } = req.body;
     const { category, error } = await aiUtils.categorizeNote(content);
@@ -279,7 +314,7 @@ app.post('/api/ai/categorize', async (req, res) => {
   }
 });
 
-app.post('/api/ai/enhance', async (req, res) => {
+app.post('/api/ai/enhance', aiLimiter, async (req, res) => {
   try {
     const { content } = req.body;
     const { enhanced, error } = await aiUtils.enhanceNote(content);
@@ -291,7 +326,7 @@ app.post('/api/ai/enhance', async (req, res) => {
   }
 });
 
-app.post('/api/ai/quote', async (req, res) => {
+app.post('/api/ai/quote', aiLimiter, async (req, res) => {
   try {
     const { mood } = req.body;
     const { quote, error } = await aiUtils.generateQuote(mood || 'motivational');
@@ -303,7 +338,7 @@ app.post('/api/ai/quote', async (req, res) => {
   }
 });
 
-app.post('/api/ai/meeting-summary', async (req, res) => {
+app.post('/api/ai/meeting-summary', aiLimiter, async (req, res) => {
   try {
     const { content } = req.body;
     const { summary, error } = await aiUtils.summarizeMeeting(content);
@@ -315,7 +350,7 @@ app.post('/api/ai/meeting-summary', async (req, res) => {
   }
 });
 
-app.post('/api/ai/transcribe-video', upload.single('video'), async (req, res) => {
+app.post('/api/ai/transcribe-video', aiLimiter, upload.single('video'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -354,8 +389,8 @@ aiUtils.initialize()
   .then((ok) => console.log('✅ AI service initialized:', ok))
   .catch((err) => console.error('⚠️ AI init warning:', err.message));
 
-// Google Calendar OAuth routes
-app.get('/auth/google', (req, res) => {
+// Google Calendar OAuth routes (with rate limiting)
+app.get('/auth/google', authLimiter, (req, res) => {
   try {
     const url = googleCal.generateAuthUrl();
     return res.redirect(url);
@@ -365,7 +400,7 @@ app.get('/auth/google', (req, res) => {
   }
 });
 
-app.get('/auth/google/callback', async (req, res) => {
+app.get('/auth/google/callback', authLimiter, async (req, res) => {
   const code = req.query.code;
   if (!code) return res.status(400).send('Missing authorization code');
   try {
@@ -432,8 +467,60 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// 404 Handler - Must be after all routes
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
+});
+
+// Global Error Handler - Must be last
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  
+  // Multer file upload errors
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
+    }
+    return res.status(400).json({ error: `Upload error: ${err.message}` });
+  }
+  
+  // Custom file type error
+  if (err.message && err.message.includes('Invalid file type')) {
+    return res.status(400).json({ error: err.message });
+  }
+  
+  // MongoDB errors
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: 'Validation error', details: err.message });
+  }
+  
+  if (err.name === 'CastError') {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+  
+  // Google API errors
+  if (err.code && err.code >= 400 && err.code < 500) {
+    return res.status(err.code).json({ error: err.message || 'Google API error' });
+  }
+  
+  // Default error
+  const statusCode = err.statusCode || err.status || 500;
+  res.status(statusCode).json({
+    error: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
 app.listen(port, () => {
   console.log(`🚀 Server is running on port ${port}`);
+  console.log(`📊 Rate limiting enabled:`);
+  console.log(`   - General: 100 requests per 15 minutes`);
+  console.log(`   - AI: 10 requests per minute`);
+  console.log(`   - Auth: 5 attempts per 15 minutes`);
 });
 
 // Add this route to your server.js file

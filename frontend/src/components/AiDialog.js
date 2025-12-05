@@ -57,17 +57,17 @@ export function AiDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 4,
-          background: "rgba(30, 41, 59, 0.95)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(139, 92, 246, 0.3)",
+          borderRadius: 3,
+          background: "rgba(21, 27, 46, 0.95)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(45, 212, 191, 0.2)",
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
         },
       }}
     >
       <DialogTitle
         sx={{
-          borderBottom: "1px solid rgba(139, 92, 246, 0.3)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -100,7 +100,7 @@ export function AiDialog({
                 sx: {
                   color: "#94a3b8",
                   fontWeight: 600,
-                  "&.Mui-focused": { color: "#8b5cf6" },
+                  "&.Mui-focused": { color: "#2dd4bf" },
                   transformOrigin: "left top",
                 },
               }}
@@ -108,16 +108,16 @@ export function AiDialog({
                 "& .MuiOutlinedInput-root": {
                   backgroundColor: "rgba(15, 23, 42, 0.5)",
                   color: "#f1f5f9",
-                  borderRadius: 3,
+                  borderRadius: 2,
                   "& fieldset": {
-                    borderColor: "rgba(139, 92, 246, 0.3)",
+                    borderColor: "rgba(255, 255, 255, 0.1)",
                   },
                   "&:hover fieldset": {
-                    borderColor: "#8b5cf6",
+                    borderColor: "rgba(45, 212, 191, 0.5)",
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: "#8b5cf6",
-                    borderWidth: 2,
+                    borderColor: "#2dd4bf",
+                    borderWidth: 1,
                   },
                   "& textarea": {
                     scrollbarWidth: "none",
@@ -135,7 +135,7 @@ export function AiDialog({
 
           {showFileUpload && (
             <>
-              <Divider sx={{ borderColor: "rgba(139, 92, 246, 0.3)" }}>
+              <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.08)" }}>
                 <Typography sx={{ color: "#94a3b8", fontSize: "0.85rem", fontWeight: 600 }}>
                   OR
                 </Typography>
@@ -147,9 +147,9 @@ export function AiDialog({
                   flexDirection: "column",
                   gap: 2,
                   p: 2.5,
-                  borderRadius: 3,
-                  background: "rgba(15, 23, 42, 0.5)",
-                  border: "2px dashed rgba(139, 92, 246, 0.3)",
+                  borderRadius: 2,
+                  background: "rgba(10, 14, 26, 0.5)",
+                  border: "2px dashed rgba(45, 212, 191, 0.3)",
                 }}
               >
                 <Typography sx={{ color: "#cbd5e1", fontWeight: 600, fontSize: "0.9rem" }}>
@@ -173,13 +173,13 @@ export function AiDialog({
                     startIcon={<CloudUploadIcon />}
                     fullWidth
                     sx={{
-                      borderRadius: 3,
-                      borderColor: "rgba(139, 92, 246, 0.5)",
+                      borderRadius: 2,
+                      borderColor: "rgba(45, 212, 191, 0.3)",
                       color: "#cbd5e1",
                       py: 1.5,
                       "&:hover": {
-                        borderColor: "#8b5cf6",
-                        backgroundColor: "rgba(139, 92, 246, 0.1)",
+                        borderColor: "#2dd4bf",
+                        backgroundColor: "rgba(45, 212, 191, 0.1)",
                       },
                     }}
                   >
@@ -195,11 +195,11 @@ export function AiDialog({
                       gap: 1.5,
                       p: 2,
                       borderRadius: 2,
-                      background: "rgba(139, 92, 246, 0.1)",
-                      border: "1px solid rgba(139, 92, 246, 0.3)",
+                      background: "rgba(45, 212, 191, 0.1)",
+                      border: "1px solid rgba(45, 212, 191, 0.3)",
                     }}
                   >
-                    <VideoFileIcon sx={{ color: "#8b5cf6", fontSize: 28 }} />
+                    <VideoFileIcon sx={{ color: "#2dd4bf", fontSize: 28 }} />
                     <Box sx={{ flex: 1 }}>
                       <Typography sx={{ color: "#f1f5f9", fontWeight: 600, fontSize: "0.9rem" }}>
                         {selectedFile.name}
@@ -215,9 +215,11 @@ export function AiDialog({
                       disabled={loading}
                       sx={{
                         borderRadius: 2,
-                        background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+                        background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+                        color: "#0a0e1a",
+                        fontWeight: 600,
                         "&:hover": {
-                          background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)",
+                          background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)",
                         },
                       }}
                     >
@@ -241,7 +243,7 @@ export function AiDialog({
                 border: "1px solid rgba(139, 92, 246, 0.3)",
               }}
             >
-              <CircularProgress size={24} sx={{ color: "#8b5cf6" }} />
+              <CircularProgress size={24} sx={{ color: "#2dd4bf" }} />
               <Typography sx={{ fontWeight: 500, color: "#f1f5f9" }}>
                 Processing with AI...
               </Typography>
@@ -252,9 +254,9 @@ export function AiDialog({
             <Box
               sx={{
                 p: 2.5,
-                borderRadius: 3,
-                background: "rgba(15, 23, 42, 0.5)",
-                border: "1px solid rgba(139, 92, 246, 0.3)",
+                borderRadius: 2,
+                background: "rgba(10, 14, 26, 0.5)",
+                border: "1px solid rgba(45, 212, 191, 0.3)",
                 position: "relative",
                 maxHeight: "400px",
                 overflowY: "auto",
@@ -268,8 +270,8 @@ export function AiDialog({
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: "4px",
-                  background: "linear-gradient(90deg, #8b5cf6, #ec4899)",
+                  height: "3px",
+                  background: "linear-gradient(90deg, #2dd4bf, #14b8a6)",
                   borderTopLeftRadius: "inherit",
                   borderTopRightRadius: "inherit",
                 },
@@ -291,20 +293,20 @@ export function AiDialog({
       <DialogActions
         sx={{
           p: 2.5,
-          borderTop: "1px solid rgba(139, 92, 246, 0.3)",
+          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
         }}
       >
         <Button
           onClick={handleClose}
           variant="outlined"
           sx={{
-            borderRadius: 3,
+            borderRadius: 2,
             minWidth: "100px",
-            borderColor: "rgba(139, 92, 246, 0.5)",
+            borderColor: "rgba(255, 255, 255, 0.1)",
             color: "#cbd5e1",
             "&:hover": {
-              borderColor: "#8b5cf6",
-              backgroundColor: "rgba(139, 92, 246, 0.1)",
+              borderColor: "rgba(45, 212, 191, 0.5)",
+              backgroundColor: "rgba(45, 212, 191, 0.1)",
             },
           }}
         >
@@ -315,13 +317,15 @@ export function AiDialog({
           variant="contained"
           disabled={loading || !inputValue}
           sx={{
-            borderRadius: 3,
+            borderRadius: 2,
             minWidth: "100px",
-            background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
-            boxShadow: "0 4px 16px rgba(139, 92, 246, 0.4)",
+            background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+            color: "#0a0e1a",
+            fontWeight: 600,
+            boxShadow: "0 4px 16px rgba(45, 212, 191, 0.3)",
             "&:hover": {
-              background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)",
-              boxShadow: "0 6px 20px rgba(139, 92, 246, 0.5)",
+              background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)",
+              boxShadow: "0 6px 20px rgba(45, 212, 191, 0.4)",
             },
           }}
         >

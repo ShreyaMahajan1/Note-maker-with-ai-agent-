@@ -13,25 +13,31 @@ body {
   overflow-x: hidden;
 }
 
-/* Smooth scrollbar */
+/* Smooth scrollbar - Teal Theme */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: rgba(10, 14, 26, 0.5);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #615af1;
+  background: rgba(45, 212, 191, 0.4);
   border-radius: 10px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a47d1;
+  background: rgba(45, 212, 191, 0.6);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(45, 212, 191, 0.4) rgba(10, 14, 26, 0.5);
 }
 
 /* Fade animations */
@@ -61,16 +67,16 @@ body {
 
 /* Glassmorphism effect - Dark */
 .glass {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(21, 27, 46, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -78,6 +84,6 @@ body {
 
 /* Dark theme body */
 body {
-  background: #0f172a;
-  color: #f1f5f9;
+  background: linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%);
+  color: #e2e8f0;
 }

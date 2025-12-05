@@ -11,7 +11,7 @@ const AnalyticsDashboard = ({ data }) => {
     );
   }
 
-  const colors = ['#615af1', '#8b7ef5', '#a78bfa', '#c4b5fd', '#7c3aed', '#9333ea'];
+  const colors = ['#2dd4bf', '#14b8a6', '#5eead4', '#f59e0b', '#fbbf24', '#10b981'];
   const total = data.values.reduce((sum, val) => sum + val, 0);
   const maxValue = Math.max(...data.values);
   const avgNotesPerCategory = total > 0 ? (total / data.labels.length).toFixed(1) : 0;
@@ -42,24 +42,25 @@ const AnalyticsDashboard = ({ data }) => {
   );
 
   const isMobile = window.innerWidth < 768;
+  const isTablet = window.innerWidth >= 768 && window.innerWidth <= 900;
 
   return (
     <div style={{
       width: '100%',
       height: '100%',
-      background: '#0f172a',
+      background: 'linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%)',
       padding: isMobile ? '16px' : '20px',
       boxSizing: 'border-box'
     }}>
       <div style={{
-        display: isMobile ? 'flex' : 'grid',
-        flexDirection: isMobile ? 'column' : undefined,
-        gridTemplateColumns: isMobile ? undefined : '280px 1fr',
+        display: (isMobile || isTablet) ? 'flex' : 'grid',
+        flexDirection: (isMobile || isTablet) ? 'column' : undefined,
+        gridTemplateColumns: (isMobile || isTablet) ? undefined : '280px 1fr',
         gap: isMobile ? '16px' : '24px',
         height: '100%',
-        maxWidth: isMobile ? undefined : '1600px',
+        maxWidth: (isMobile || isTablet) ? undefined : '1600px',
         margin: '0 auto',
-        overflowX: isMobile ? 'auto' : 'visible'
+        overflowX: (isMobile || isTablet) ? 'auto' : 'visible'
       }}>
         {/* Left Column - Stats Cards */}
         <div style={{
@@ -73,11 +74,11 @@ const AnalyticsDashboard = ({ data }) => {
         }}>
           {/* Total Notes Card */}
           <div style={{
-            width: isMobile ? '220px' : '100%',
+            width: isMobile ? '220px' : (isTablet ? '100%' : '100%'),
             minWidth: isMobile ? '220px' : 'auto',
             padding: isMobile ? '16px' : '20px',
-            background: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'rgba(21, 27, 46, 0.7)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '8px',
             flex: isMobile ? '0 0 auto' : 1
           }}>
@@ -100,11 +101,11 @@ const AnalyticsDashboard = ({ data }) => {
 
           {/* Categories Card */}
           <div style={{
-            width: isMobile ? '220px' : '100%',
+            width: isMobile ? '220px' : (isTablet ? '100%' : '100%'),
             minWidth: isMobile ? '220px' : 'auto',
             padding: isMobile ? '16px' : '20px',
-            background: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'rgba(21, 27, 46, 0.7)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '8px',
             flex: isMobile ? '0 0 auto' : 1
           }}>
@@ -121,11 +122,11 @@ const AnalyticsDashboard = ({ data }) => {
 
           {/* Average Card */}
           <div style={{
-            width: isMobile ? '220px' : '100%',
+            width: isMobile ? '220px' : (isTablet ? '100%' : '100%'),
             minWidth: isMobile ? '220px' : 'auto',
             padding: isMobile ? '16px' : '20px',
-            background: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'rgba(21, 27, 46, 0.7)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '8px',
             flex: isMobile ? '0 0 auto' : 1
           }}>
@@ -142,11 +143,11 @@ const AnalyticsDashboard = ({ data }) => {
 
           {/* Top Category Card */}
           <div style={{
-            width: isMobile ? '220px' : '100%',
+            width: isMobile ? '220px' : (isTablet ? '100%' : '100%'),
             minWidth: isMobile ? '220px' : 'auto',
             padding: isMobile ? '16px' : '20px',
-            background: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'rgba(21, 27, 46, 0.7)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '8px',
             flex: isMobile ? '0 0 auto' : 1
           }}>
@@ -163,19 +164,19 @@ const AnalyticsDashboard = ({ data }) => {
         </div>
 
         {/* Right Column - Charts */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '20px', height: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: (isMobile || isTablet) ? '16px' : '20px', height: '100%' }}>
           {/* Top Row - Two Bar Charts */}
           <div style={{ 
             display: 'flex', 
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '16px' : '20px', 
-            height: isMobile ? 'auto' : '45%'
+            flexDirection: (isMobile || isTablet) ? 'column' : 'row',
+            gap: (isMobile || isTablet) ? '16px' : '20px', 
+            height: (isMobile || isTablet) ? 'auto' : '45%'
           }}>
             {/* Notes Distribution */}
             <div style={{
               padding: isMobile ? '16px' : '20px',
-              background: 'rgba(30, 41, 59, 0.8)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
+              background: 'rgba(21, 27, 46, 0.7)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: '8px',
               flex: isMobile ? 1 : 1.5,
               display: 'flex',
@@ -333,8 +334,8 @@ const AnalyticsDashboard = ({ data }) => {
             {/* Category Breakdown */}
             <div style={{
               padding: isMobile ? '16px' : '20px',
-              background: 'rgba(30, 41, 59, 0.8)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
+              background: 'rgba(21, 27, 46, 0.7)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: '8px',
               flex: isMobile ? 1 : 4,
               display: 'flex',
@@ -386,8 +387,8 @@ const AnalyticsDashboard = ({ data }) => {
           {/* Bottom Row - Area Chart */}
           <div style={{
             padding: isMobile ? '16px' : '20px',
-            background: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'rgba(21, 27, 46, 0.7)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '8px',
             height: isMobile ? '240px' : '55%',
             minHeight: isMobile ? '220px' : 'auto'
@@ -400,8 +401,8 @@ const AnalyticsDashboard = ({ data }) => {
               <svg width="100%" height="100%" viewBox="0 0 700 160" preserveAspectRatio="none" style={{ display: 'block' }}>
                 <defs>
                   <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#615af1" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#615af1" stopOpacity="0.05" />
+                    <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#2dd4bf" stopOpacity="0.02" />
                   </linearGradient>
                 </defs>
                 
@@ -413,8 +414,8 @@ const AnalyticsDashboard = ({ data }) => {
                 <path
                   d="M 0 100 Q 50 80, 100 85 T 200 75 T 300 80 T 400 70 T 500 75 T 600 65 T 700 70"
                   fill="none"
-                  stroke="#615af1"
-                  strokeWidth="3"
+                  stroke="#2dd4bf"
+                  strokeWidth="2"
                   vectorEffect="non-scaling-stroke"
                 />
               </svg>

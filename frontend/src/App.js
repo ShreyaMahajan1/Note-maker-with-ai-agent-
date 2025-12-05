@@ -64,18 +64,18 @@ const theme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      main: "#8b5cf6",
-      light: "#a78bfa",
-      dark: "#7c3aed",
+      main: "#2dd4bf", // teal accent
+      light: "#5eead4",
+      dark: "#14b8a6",
     },
     secondary: {
-      main: "#ec4899",
-      light: "#f472b6",
-      dark: "#db2777",
+      main: "#f59e0b", // amber
+      light: "#fbbf24",
+      dark: "#d97706",
     },
     background: {
-      default: "#0f172a",
-      paper: "#1e293b",
+      default: "#0a0e1a",
+      paper: "#151b2e",
     },
     grey: {
       50: "#f8fafc",
@@ -95,28 +95,27 @@ const theme = createTheme({
       dark: "#059669",
     },
     text: {
-      primary: "#f1f5f9",
-      secondary: "#cbd5e1",
+      primary: "#e2e8f0",
+      secondary: "#94a3b8",
     },
   },
   typography: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
     h4: {
-      fontWeight: 800,
-      letterSpacing: "-1px",
-    },
-    h5: {
       fontWeight: 700,
       letterSpacing: "-0.5px",
     },
-    h6: {
+    h5: {
       fontWeight: 600,
       letterSpacing: "-0.3px",
+    },
+    h6: {
+      fontWeight: 600,
+      letterSpacing: "0px",
     },
     subtitle1: {
       fontSize: "1rem",
       fontWeight: 500,
-      letterSpacing: "-0.2px",
     },
     body1: {
       fontSize: "0.95rem",
@@ -131,37 +130,30 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 8,
           textTransform: "none",
           fontWeight: 600,
-          fontSize: "0.95rem",
+          fontSize: "0.9rem",
           boxShadow: "none",
-          padding: "10px 24px",
-          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          padding: "10px 20px",
+          transition: "all 0.15s ease",
           "&:hover": {
-            boxShadow: "0 8px 24px rgba(99, 102, 241, 0.25)",
-            transform: "translateY(-2px)",
+            boxShadow: "none",
+            transform: "translateY(-1px)",
           },
-          "&:active": {
-            transform: "translateY(0)",
-          },
-        },
-        contained: {
-          boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 20,
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          border: "1px solid rgba(0, 0, 0, 0.06)",
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
+          borderRadius: 12,
+          transition: "all 0.2s ease",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
+          boxShadow: "none",
           "&:hover": {
-            transform: "translateY(-4px)",
-            boxShadow: "0 12px 32px rgba(0, 0, 0, 0.12)",
-            borderColor: "rgba(99, 102, 241, 0.2)",
+            transform: "translateY(-2px)",
+            borderColor: "rgba(45, 212, 191, 0.3)",
           },
         },
       },
@@ -169,30 +161,17 @@ const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 6,
           fontWeight: 600,
-          fontSize: "0.85rem",
-          transition: "all 0.2s ease",
-          "&:hover": {
-            transform: "scale(1.05)",
-          },
+          fontSize: "0.75rem",
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
-        },
-        elevation1: {
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-        },
-        elevation2: {
-          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
-        },
-        elevation3: {
-          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
+          borderRadius: 12,
+          boxShadow: "none",
         },
       },
     },
@@ -200,14 +179,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiOutlinedInput-root": {
-            borderRadius: 12,
-            transition: "all 0.2s ease",
-            "&:hover": {
-              boxShadow: "0 4px 12px rgba(99, 102, 241, 0.1)",
-            },
-            "&.Mui-focused": {
-              boxShadow: "0 4px 16px rgba(99, 102, 241, 0.2)",
-            },
+            borderRadius: 8,
           },
         },
       },
@@ -724,10 +696,10 @@ function App() {
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
-                    color: "#1a73e8",
+                    color: "#2dd4bf",
                     textDecoration: "underline",
                     "&:hover": {
-                      color: "#0d47a1",
+                      color: "#5eead4",
                     },
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -751,20 +723,20 @@ function App() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 0.5,
-                color: "#a78bfa",
+                color: "#2dd4bf",
                 fontSize: "0.85rem",
                 fontWeight: 600,
                 textDecoration: "none",
                 "&:hover": {
                   textDecoration: "underline",
-                  color: "#8b5cf6",
+                  color: "#5eead4",
                 },
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <LinkIcon sx={{ fontSize: "16px" }} />
+              <LinkIcon sx={{ fontSize: "16px", color: "#2dd4bf" }} />
               {link.length > 40 ? link.substring(0, 40) + "..." : link}
-              <OpenInNewIcon sx={{ fontSize: "14px" }} />
+              <OpenInNewIcon sx={{ fontSize: "14px", color: "#2dd4bf" }} />
             </Link>
           </Box>
         )}
@@ -776,26 +748,23 @@ function App() {
   const CategorySidebar = () => (
     <Box
       sx={{
-        background: "rgba(30, 41, 59, 0.8)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderRadius: 4,
-        border: "1px solid rgba(139, 92, 246, 0.2)",
+        background: "rgba(21, 27, 46, 0.7)",
+        borderRadius: 3,
+        border: "1px solid rgba(255, 255, 255, 0.08)",
         p: 2.5,
         height: "100%",
         overflowY: "auto",
         "&::-webkit-scrollbar": {
-          width: "6px",
+          width: "4px",
         },
         "&::-webkit-scrollbar-track": {
-          background: "rgba(15, 23, 42, 0.5)",
-          borderRadius: "10px",
+          background: "transparent",
         },
         "&::-webkit-scrollbar-thumb": {
-          background: "#615af1",
+          background: "rgba(45, 212, 191, 0.3)",
           borderRadius: "10px",
           "&:hover": {
-            background: "#4a47d1",
+            background: "rgba(45, 212, 191, 0.5)",
           },
         },
       }}
@@ -826,20 +795,20 @@ function App() {
               borderRadius: 3,
               background:
                 selectedCategory === category && currentView === "notes"
-                  ? "#615af1"
+                  ? "rgba(45, 212, 191, 0.15)"
                   : "transparent",
-              color: selectedCategory === category && currentView === "notes" ? "white" : "#cbd5e1",
+              color: selectedCategory === category && currentView === "notes" ? "#2dd4bf" : "#94a3b8",
               cursor: "pointer",
-              fontWeight: selectedCategory === category && currentView === "notes" ? 700 : 600,
+              fontWeight: selectedCategory === category && currentView === "notes" ? 600 : 500,
               fontSize: "0.9rem",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              border: "1px solid transparent",
+              transition: "all 0.15s ease",
+              border: selectedCategory === category && currentView === "notes" ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid transparent",
               "&:hover": {
                 background:
                   selectedCategory === category && currentView === "notes"
-                    ? "#4a47d1"
-                    : "rgba(97, 90, 241, 0.2)",
-                transform: "translateX(4px)",
+                    ? "rgba(45, 212, 191, 0.2)"
+                    : "rgba(45, 212, 191, 0.08)",
+                transform: "translateX(2px)",
               },
             }}
           >
@@ -850,7 +819,7 @@ function App() {
 
       <Box sx={{
         pt: 2,
-        borderTop: "1px solid rgba(139, 92, 246, 0.2)",
+        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
       }}>
         <Box
           onClick={() => {
@@ -861,19 +830,19 @@ function App() {
             px: 2.5,
             py: 1.5,
             borderRadius: 3,
-            background: currentView === "analytics" ? "#615af1" : "transparent",
-            color: currentView === "analytics" ? "white" : "#cbd5e1",
+            background: currentView === "analytics" ? "rgba(45, 212, 191, 0.15)" : "transparent",
+            color: currentView === "analytics" ? "#2dd4bf" : "#94a3b8",
             cursor: "pointer",
-            fontWeight: currentView === "analytics" ? 700 : 600,
+            fontWeight: currentView === "analytics" ? 600 : 500,
             fontSize: "0.9rem",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            border: "1px solid transparent",
+            transition: "all 0.15s ease",
+            border: currentView === "analytics" ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid transparent",
             display: "flex",
             alignItems: "center",
             gap: 1,
             "&:hover": {
-              background: currentView === "analytics" ? "#4a47d1" : "rgba(97, 90, 241, 0.2)",
-              transform: "translateX(4px)",
+              background: currentView === "analytics" ? "rgba(45, 212, 191, 0.2)" : "rgba(45, 212, 191, 0.08)",
+              transform: "translateX(2px)",
             },
           }}
         >
@@ -890,18 +859,18 @@ function App() {
           flexGrow: 1,
           minHeight: "100vh",
           position: "relative",
-          background: "#0f172a",
+          background: "linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%)",
         }}
       >
         <AppBar
           position="sticky"
           elevation={0}
           sx={{
-            backgroundColor: "rgba(15, 23, 42, 0.7)",
-            borderBottom: "1px solid rgba(139, 92, 246, 0.2)",
-            backdropFilter: "blur(30px) saturate(180%)",
-            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(10, 14, 26, 0.85)",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
             zIndex: 1100,
           }}
         >
@@ -938,33 +907,32 @@ function App() {
               variant="h5"
               component="div"
               sx={{
-                flexShrink: 0, // Prevent logo from shrinking
-                color: "white",
-                fontWeight: 900,
-                fontSize: { xs: "1.1rem", sm: "1.7rem", md: "2.2rem" },
-                letterSpacing: "-1.5px",
+                flexShrink: 0,
+                color: "#2dd4bf",
+                fontWeight: 700,
+                fontSize: { xs: "1.2rem", sm: "1.5rem", md: "1.8rem" },
+                letterSpacing: "-0.5px",
                 display: "flex",
                 alignItems: "center",
                 gap: { xs: 0.5, sm: 1 },
-                textShadow: "0 2px 20px rgba(0, 0, 0, 0.2)",
-                filter: "drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))",
                 mr: { xs: 1, sm: 2 },
               }}
             >
               <Box
                 sx={{
-                  background: "#615af1",
-                  borderRadius: { xs: "8px", sm: "12px" },
-                  p: { xs: 0.5, sm: 0.8 },
+                  width: { xs: 28, sm: 36 },
+                  height: { xs: 28, sm: 36 },
+                  background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+                  borderRadius: "8px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(45, 212, 191, 0.3)",
                 }}
               >
-                <SmartToyIcon sx={{
-                  fontSize: { xs: 18, sm: 26, md: 30 },
-                  color: "white",
-                }} />
+                <Box component="span" sx={{ fontSize: { xs: "1rem", sm: "1.3rem" } }}>
+                  📝
+                </Box>
               </Box>
               <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
                 MindSync
@@ -990,13 +958,12 @@ function App() {
                   color: "rgba(255, 255, 255, 0.7)",
                 },
                 "& .Mui-selected": {
-                  color: "white",
+                  color: "#2dd4bf",
                   fontWeight: 700,
                 },
                 "& .MuiTabs-indicator": {
-                  backgroundColor: "white",
-                  height: 3,
-                  borderRadius: "3px 3px 0 0",
+                  backgroundColor: "#2dd4bf",
+                  height: 2,
                 },
               }}
             >
@@ -1052,19 +1019,17 @@ function App() {
                   onClick={() => setLayoutMode("single")}
                   size="small"
                   sx={{
-                    color: layoutMode === "single" ? "white" : "rgba(255, 255, 255, 0.7)",
+                    color: layoutMode === "single" ? "#2dd4bf" : "rgba(255, 255, 255, 0.5)",
                     background:
                       layoutMode === "single"
-                        ? "rgba(255, 255, 255, 0.25)"
-                        : "rgba(255, 255, 255, 0.1)",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                        ? "rgba(45, 212, 191, 0.15)"
+                        : "transparent",
+                    border: layoutMode === "single" ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid rgba(255, 255, 255, 0.1)",
                     p: { xs: 0.5, sm: 0.75, md: 1 },
-                    borderRadius: 2,
-                    transition: "all 0.3s ease",
+                    borderRadius: 1.5,
+                    transition: "all 0.15s ease",
                     "&:hover": {
-                      background: "rgba(255, 255, 255, 0.3)",
-                      transform: "scale(1.05)",
+                      background: "rgba(45, 212, 191, 0.1)",
                     },
                   }}
                   title="Single Card View"
@@ -1094,19 +1059,21 @@ function App() {
               }}
               variant="contained"
               sx={{
-                flexShrink: 0, // Prevent button from shrinking
+                flexShrink: 0,
                 textTransform: "none",
-                fontWeight: 700,
-                borderRadius: { xs: 1.5, sm: 3 },
-                px: { xs: 1, sm: 2.5, md: 3.5 },
-                py: { xs: 0.5, sm: 1, md: 1.2 },
-                fontSize: { xs: "0.65rem", sm: "0.8rem", md: "0.9rem" },
-                minWidth: { xs: "60px", sm: "120px", md: "150px" },
-                background: "#615af1",
-                color: "white",
+                fontWeight: 600,
+                borderRadius: { xs: 1.5, sm: 2 },
+                px: { xs: 1, sm: 2, md: 2.5 },
+                py: { xs: 0.5, sm: 0.8, md: 1 },
+                fontSize: { xs: "0.7rem", sm: "0.85rem", md: "0.9rem" },
+                minWidth: { xs: "60px", sm: "100px", md: "120px" },
+                background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+                color: "#0a0e1a",
                 border: "none",
+                boxShadow: "0 2px 8px rgba(45, 212, 191, 0.3)",
                 "&:hover": {
-                  background: "#4a47d1",
+                  background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)",
+                  boxShadow: "0 4px 12px rgba(45, 212, 191, 0.4)",
                 },
               }}
               disabled={checkingGoogleAuth}
@@ -1132,6 +1099,10 @@ function App() {
               width: 280,
               boxSizing: "border-box",
               p: 2,
+              pt: 3,
+              pb: 3,
+              background: "linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%)",
+              borderRight: "1px solid rgba(45, 212, 191, 0.2)",
             },
           }}
         >
@@ -1141,12 +1112,23 @@ function App() {
               justifyContent: "space-between",
               alignItems: "center",
               mb: 2,
+              pb: 2,
+              borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 700, color: "#615af1" }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: "#2dd4bf" }}>
               Categories
             </Typography>
-            <IconButton onClick={() => setSidebarOpen(false)}>
+            <IconButton 
+              onClick={() => setSidebarOpen(false)}
+              sx={{
+                color: "#94a3b8",
+                "&:hover": {
+                  backgroundColor: "rgba(45, 212, 191, 0.1)",
+                  color: "#2dd4bf",
+                },
+              }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
@@ -1157,17 +1139,24 @@ function App() {
           ariaLabel="AI Actions"
           open={speedDialOpen}
           onClick={() => setSpeedDialOpen(!speedDialOpen)}
+          direction="up"
           sx={{
             position: "fixed",
-            bottom: 24,
-            right: 24,
+            bottom: { xs: 140, sm: 100 },
+            right: { xs: 16, sm: 24 },
             "& .MuiSpeedDial-fab": {
-              width: 64,
-              height: 64,
-              background: "#615af1",
+              width: 56,
+              height: 56,
+              background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+              color: "#0a0e1a",
+              boxShadow: "0 4px 16px rgba(45, 212, 191, 0.4)",
               "&:hover": {
-                background: "#4a47d1",
+                background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)",
+                boxShadow: "0 6px 20px rgba(45, 212, 191, 0.5)",
               },
+            },
+            "& .MuiSpeedDial-actions": {
+              paddingTop: { xs: "8px", sm: "8px" },
             },
           }}
           icon={<SpeedDialIcon />}
@@ -1182,8 +1171,18 @@ function App() {
                 setSpeedDialOpen(false);
               }}
               sx={{
+                marginTop: { xs: "12px", sm: "10px" },
                 "&:hover": {
-                  backgroundColor: "primary.light",
+                  backgroundColor: "rgba(45, 212, 191, 0.15)",
+                },
+                "& .MuiSpeedDialAction-fab": {
+                  backgroundColor: "rgba(21, 27, 46, 0.9)",
+                  color: "#2dd4bf",
+                  border: "1px solid rgba(45, 212, 191, 0.3)",
+                  "&:hover": {
+                    backgroundColor: "rgba(45, 212, 191, 0.2)",
+                    borderColor: "#2dd4bf",
+                  },
                 },
               }}
             />
@@ -1229,7 +1228,7 @@ function App() {
               variant="outlined"
               InputProps={{
                 startAdornment: (
-                  <LinkIcon sx={{ mr: 1, color: "text.secondary" }} />
+                  <LinkIcon sx={{ mr: 1, color: "#2dd4bf" }} />
                 ),
               }}
             />
@@ -1265,7 +1264,7 @@ function App() {
                 right: { xs: 0, md: "50%" },
                 marginLeft: { xs: 0, md: "-50vw" },
                 marginRight: { xs: 0, md: "-50vw" },
-                background: "#0f172a",
+                background: "linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%)",
                 pt: { xs: 2, md: 3 },
                 px: { xs: 2, md: 3 },
               }}
@@ -1341,12 +1340,9 @@ function App() {
                       elevation={0}
                       sx={{
                         p: 3,
-                        background: "rgba(30, 41, 59, 0.8)",
-                        backdropFilter: "blur(20px)",
-                        WebkitBackdropFilter: "blur(20px)",
-                        border: "1px solid rgba(139, 92, 246, 0.2)",
-                        borderRadius: 4,
-                        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+                        background: "rgba(21, 27, 46, 0.7)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        borderRadius: 3,
                       }}
                     >
                       <CardContent>
@@ -1424,23 +1420,23 @@ function App() {
                               InputProps={{
                                 startAdornment: (
                                   <LinkIcon
-                                    sx={{ mr: 1, color: "#8b5cf6" }}
+                                    sx={{ mr: 1, color: "#2dd4bf" }}
                                   />
                                 ),
                               }}
                               sx={{
-                                backgroundColor: "rgba(30, 41, 59, 0.8)",
+                                backgroundColor: "rgba(21, 27, 46, 0.6)",
                                 "& .MuiOutlinedInput-root": {
-                                  borderRadius: 3,
-                                  border: "1px solid rgba(139, 92, 246, 0.3)",
-                                  color: "#f1f5f9",
+                                  borderRadius: 2,
+                                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                                  color: "#e2e8f0",
                                   "&:hover fieldset": {
-                                    borderColor: "#8b5cf6",
+                                    borderColor: "rgba(45, 212, 191, 0.5)",
                                   },
                                   "&.Mui-focused fieldset": {
-                                    borderColor: "#8b5cf6",
-                                    borderWidth: 2,
-                                    boxShadow: "0 0 0 3px rgba(139, 92, 246, 0.1)",
+                                    borderColor: "#2dd4bf",
+                                    borderWidth: 1,
+                                    boxShadow: "0 0 0 3px rgba(45, 212, 191, 0.1)",
                                   },
                                 },
                                 "& .MuiOutlinedInput-input": {
@@ -1467,19 +1463,18 @@ function App() {
                                 setColorMenuAnchor(e.currentTarget)
                               }
                               sx={{
-                                border: "2px solid rgba(139, 92, 246, 0.3)",
-                                borderRadius: 3,
+                                border: "1px solid rgba(45, 212, 191, 0.3)",
+                                borderRadius: 2,
                                 p: 1.5,
-                                background: "rgba(139, 92, 246, 0.1)",
-                                transition: "all 0.3s ease",
+                                background: "rgba(45, 212, 191, 0.1)",
+                                transition: "all 0.15s ease",
                                 "&:hover": {
-                                  backgroundColor: "rgba(139, 92, 246, 0.2)",
-                                  borderColor: "#8b5cf6",
-                                  transform: "scale(1.05)",
+                                  backgroundColor: "rgba(45, 212, 191, 0.2)",
+                                  borderColor: "#2dd4bf",
                                 },
                               }}
                             >
-                              <PaletteIcon sx={{ color: "#8b5cf6" }} />
+                              <PaletteIcon sx={{ color: "#2dd4bf" }} />
                             </IconButton>
                             <Button
                               variant="contained"
@@ -1490,9 +1485,13 @@ function App() {
                                 height: "100%",
                                 flex: { xs: 1, sm: "none" },
                                 borderRadius: 2,
-                                backgroundColor: "#615af1",
+                                background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+                                color: "#0a0e1a",
+                                fontWeight: 600,
+                                boxShadow: "0 2px 8px rgba(45, 212, 191, 0.3)",
                                 "&:hover": {
-                                  backgroundColor: "#4a47d1",
+                                  background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)",
+                                  boxShadow: "0 4px 12px rgba(45, 212, 191, 0.4)",
                                 },
                               }}
                             >
@@ -1561,20 +1560,20 @@ function App() {
                               <Card
                                 key={note.id}
                                 sx={{
-                                  backgroundColor: "rgba(30, 41, 59, 0.8)",
-                                  backdropFilter: "blur(20px)",
-                                  border: "1px solid rgba(139, 92, 246, 0.2)",
+                                  backgroundColor: "rgba(21, 27, 46, 0.7)",
+                                  border: "1px solid rgba(255, 255, 255, 0.08)",
                                   height: { xs: 200, md: 220 },
                                   position: "relative",
                                   overflow: "hidden",
                                   cursor: "pointer",
-                                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                  borderRadius: { xs: 3, md: 4 },
+                                  transition: "all 0.2s ease",
+                                  borderRadius: { xs: 2.5, md: 3 },
                                   display: "flex",
                                   flexDirection: "column",
                                   "&:hover": {
-                                    transform: { xs: "none", md: "translateY(-4px)" },
-                                    borderColor: "rgba(139, 92, 246, 0.5)",
+                                    transform: { xs: "none", md: "translateY(-2px)" },
+                                    borderColor: "rgba(45, 212, 191, 0.4)",
+                                    boxShadow: "0 4px 12px rgba(45, 212, 191, 0.15)",
                                     "& .action-buttons": {
                                       opacity: 1,
                                     },
@@ -1606,9 +1605,10 @@ function App() {
                                       label={getNoteCategory(note.content)}
                                       size="small"
                                       sx={{
-                                        background: "#615af1",
-                                        color: "white",
-                                        fontWeight: 700,
+                                        background: "rgba(45, 212, 191, 0.15)",
+                                        color: "#2dd4bf",
+                                        border: "1px solid rgba(45, 212, 191, 0.3)",
+                                        fontWeight: 600,
                                         fontSize: { xs: "0.6rem", md: "0.65rem" },
                                         height: { xs: 18, md: 20 },
                                         "& .MuiChip-label": {
@@ -1634,9 +1634,10 @@ function App() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         sx={{
-                                          background: "#615af1",
-                                          color: "white",
-                                          fontWeight: 700,
+                                          background: "rgba(245, 158, 11, 0.15)",
+                                          color: "#f59e0b",
+                                          border: "1px solid rgba(245, 158, 11, 0.3)",
+                                          fontWeight: 600,
                                           fontSize: "0.65rem",
                                           height: 20,
                                           "& .MuiChip-label": {
@@ -1786,23 +1787,20 @@ function App() {
                               <Card
                                 key={note.id}
                                 sx={{
-                                  backgroundColor: "rgba(30, 41, 59, 0.8)",
-                                  backdropFilter: "blur(20px)",
-                                  border: "1px solid rgba(139, 92, 246, 0.2)",
+                                  backgroundColor: "rgba(21, 27, 46, 0.7)",
+                                  border: "1px solid rgba(255, 255, 255, 0.08)",
                                   position: "relative",
                                   overflow: "hidden",
-                                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                                  borderRadius: 4,
+                                  transition: "all 0.2s ease",
+                                  borderRadius: 3,
                                   width: "100%",
-
-                                  // ⭐ FIXED HEIGHT + layout
                                   height: 260,
                                   display: "flex",
                                   flexDirection: "column",
-
                                   "&:hover": {
-                                    transform: "translateY(-4px)",
-                                    borderColor: "rgba(139, 92, 246, 0.5)",
+                                    transform: "translateY(-2px)",
+                                    borderColor: "rgba(45, 212, 191, 0.4)",
+                                    boxShadow: "0 4px 12px rgba(45, 212, 191, 0.15)",
                                   },
                                 }}
                               >
@@ -1837,9 +1835,10 @@ function App() {
                                         label={getNoteCategory(note.content)}
                                         size="small"
                                         sx={{
-                                          background: "#615af1",
-                                          color: "white",
-                                          fontWeight: 700,
+                                          background: "rgba(45, 212, 191, 0.15)",
+                                          color: "#2dd4bf",
+                                          border: "1px solid rgba(45, 212, 191, 0.3)",
+                                          fontWeight: 600,
                                           fontSize: "0.7rem",
                                         }}
                                       />
@@ -1861,9 +1860,10 @@ function App() {
                                           rel="noopener noreferrer"
                                           sx={{
                                             backgroundColor:
-                                              "rgba(97, 90, 241, 0.15)",
-                                            color: "#615af1",
-                                            fontWeight: 700,
+                                              "rgba(245, 158, 11, 0.15)",
+                                            color: "#f59e0b",
+                                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                                            fontWeight: 600,
                                             fontSize: "0.7rem",
                                           }}
                                         />
@@ -1912,7 +1912,7 @@ function App() {
                                       justifyContent: "flex-end",
                                       pt: 2,
                                       borderTop:
-                                        "1px solid rgba(0, 0, 0, 0.08)",
+                                        "1px solid rgba(255, 255, 255, 0.08)",
                                     }}
                                   >
                                     <IconButton
@@ -1923,10 +1923,10 @@ function App() {
                                         setAiDialogOpen(true);
                                       }}
                                       sx={{
-                                        color: "#1a73e8",
+                                        color: "#2dd4bf",
                                         "&:hover": {
                                           backgroundColor:
-                                            "rgba(26, 115, 232, 0.1)",
+                                            "rgba(45, 212, 191, 0.15)",
                                         },
                                       }}
                                     >
@@ -1937,9 +1937,9 @@ function App() {
                                       size="small"
                                       onClick={() => openEditDialog(note)}
                                       sx={{
-                                        color: "#424242",
+                                        color: "#94a3b8",
                                         "&:hover": {
-                                          backgroundColor: "rgba(0,0,0,0.04)",
+                                          backgroundColor: "rgba(148, 163, 184, 0.15)",
                                         },
                                       }}
                                     >
@@ -1954,10 +1954,10 @@ function App() {
                                         setAiDialogOpen(true);
                                       }}
                                       sx={{
-                                        color: "#615af1",
+                                        color: "#f59e0b",
                                         "&:hover": {
                                           backgroundColor:
-                                            "rgba(97, 90, 241, 0.1)",
+                                            "rgba(245, 158, 11, 0.15)",
                                         },
                                       }}
                                     >
@@ -1968,10 +1968,10 @@ function App() {
                                       size="small"
                                       onClick={() => handleDeleteNote(note.id)}
                                       sx={{
-                                        color: "#d32f2f",
+                                        color: "#ef4444",
                                         "&:hover": {
                                           backgroundColor:
-                                            "rgba(211, 47, 47, 0.1)",
+                                            "rgba(239, 68, 68, 0.15)",
                                         },
                                       }}
                                     >
@@ -1989,14 +1989,13 @@ function App() {
                               display: "flex",
                               flexDirection: "column",
                               alignItems: "center",
-                              gap: 2,
-                              mt: 6,
+                              gap: { xs: 1.5, sm: 2 },
+                              mt: { xs: 4, sm: 6 },
                               mb: 3,
-                              p: 3,
-                              background: "rgba(30, 41, 59, 0.8)",
-                              backdropFilter: "blur(20px)",
-                              borderRadius: 4,
-                              border: "1px solid rgba(139, 92, 246, 0.2)",
+                              p: { xs: 2, sm: 3 },
+                              background: "rgba(21, 27, 46, 0.7)",
+                              borderRadius: 3,
+                              border: "1px solid rgba(255, 255, 255, 0.08)",
                             }}
                           >
                             <Pagination
@@ -2004,39 +2003,43 @@ function App() {
                               page={currentPage}
                               onChange={handlePageChange}
                               color="primary"
-                              size="large"
-                              siblingCount={1}
+                              size="medium"
+                              siblingCount={0}
                               boundaryCount={1}
                               sx={{
                                 "& .MuiPaginationItem-root": {
                                   fontWeight: 600,
-                                  fontSize: "1rem",
-                                  minWidth: "40px",
-                                  height: "40px",
-                                  borderRadius: 3,
-                                  margin: "0 4px",
-                                  border: "1px solid rgba(139, 92, 246, 0.3)",
-                                  color: "#f1f5f9",
-                                  background: "rgba(30, 41, 59, 0.8)",
-                                  transition: "all 0.3s ease",
+                                  fontSize: { xs: "0.7rem", sm: "0.875rem", md: "1rem" },
+                                  minWidth: { xs: "26px", sm: "32px", md: "40px" },
+                                  height: { xs: "26px", sm: "32px", md: "40px" },
+                                  borderRadius: 2,
+                                  margin: { xs: "0 1px", sm: "0 2px", md: "0 4px" },
+                                  padding: { xs: "0 4px", sm: "0 6px" },
+                                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                                  color: "#e2e8f0",
+                                  background: "rgba(21, 27, 46, 0.7)",
+                                  transition: "all 0.2s ease",
                                   "&:hover": {
-                                    background: "rgba(139, 92, 246, 0.2)",
-                                    borderColor: "#8b5cf6",
-                                    transform: "scale(1.05)",
+                                    background: "rgba(45, 212, 191, 0.15)",
+                                    borderColor: "rgba(45, 212, 191, 0.4)",
                                   },
                                 },
                                 "& .Mui-selected": {
-                                  background: "#615af1 !important",
-                                  color: "white",
+                                  background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%) !important",
+                                  color: "#0a0e1a",
                                   border: "none",
+                                  fontWeight: 700,
                                   "&:hover": {
-                                    background: "#4a47d1 !important",
-                                    transform: "scale(1.05)",
+                                    background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%) !important",
                                   },
                                 },
                                 "& .MuiPaginationItem-ellipsis": {
                                   border: "none",
                                   color: "#94a3b8",
+                                  minWidth: { xs: "20px", sm: "24px" },
+                                },
+                                "& .MuiPaginationItem-icon": {
+                                  fontSize: { xs: "1rem", sm: "1.25rem" },
                                 },
                               }}
                             />
@@ -2044,9 +2047,10 @@ function App() {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: "#cbd5e1",
+                                color: "#94a3b8",
                                 fontWeight: 500,
-                                fontSize: "0.9rem",
+                                fontSize: { xs: "0.75rem", sm: "0.85rem", md: "0.9rem" },
+                                textAlign: "center",
                               }}
                             >
                               Showing{" "}

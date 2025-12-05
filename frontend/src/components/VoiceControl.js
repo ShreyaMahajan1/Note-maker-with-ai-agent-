@@ -214,16 +214,26 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                 <Fab
                     sx={{
                         position: 'fixed',
-                        bottom: 104,
-                        right: 28,
+                        bottom: { xs: 16, sm: 24 },
+                        right: { xs: 16, sm: 24 },
                         width: 56,
                         height: 56,
-                        zIndex: 1300,
-                        background: isListening ? '#ef4444' : '#615af1',
-                        color: 'white',
+                        zIndex: 1350,
+                        background: isListening 
+                            ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
+                            : 'linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)',
+                        color: isListening ? 'white' : '#0a0e1a',
+                        boxShadow: isListening 
+                            ? '0 4px 16px rgba(239, 68, 68, 0.4)' 
+                            : '0 4px 16px rgba(45, 212, 191, 0.4)',
                         animation: isListening ? 'pulse 1s infinite' : 'none',
                         '&:hover': {
-                            background: isListening ? '#dc2626' : '#4a47d1',
+                            background: isListening 
+                                ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)' 
+                                : 'linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)',
+                            boxShadow: isListening 
+                                ? '0 6px 20px rgba(239, 68, 68, 0.5)' 
+                                : '0 6px 20px rgba(45, 212, 191, 0.5)',
                         },
                         '@keyframes pulse': {
                             '0%': {
@@ -251,12 +261,12 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                 fullWidth
                 PaperProps={{
                     sx: {
-                        borderRadius: 2,
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)',
                     }
                 }}
             >
-                <DialogTitle sx={{ color: 'white', fontWeight: 'bold' }}>
+                <DialogTitle sx={{ color: '#0a0e1a', fontWeight: 'bold' }}>
                     🎤 Voice Commands Help
                     <IconButton
                         aria-label="close"
@@ -265,61 +275,61 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                             position: 'absolute', 
                             right: 8, 
                             top: 8,
-                            color: 'white'
+                            color: '#0a0e1a'
                         }}
                     >
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
-                <DialogContent sx={{ bgcolor: '#f5f5f5', pt: 3 }}>
+                <DialogContent sx={{ bgcolor: '#0a0e1a', pt: 3 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                         {/* Add Note */}
-                        <Paper sx={{ p: 2, bgcolor: '#e8f5e9', borderLeft: '4px solid #4caf50' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2e7d32', mb: 1 }}>
+                        <Paper sx={{ p: 2, bgcolor: 'rgba(45, 212, 191, 0.1)', border: '1px solid rgba(45, 212, 191, 0.3)', borderLeft: '4px solid #2dd4bf' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2dd4bf', mb: 1 }}>
                                 ➕ Add a Note
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#388e3c' }}>
-                                Say: <strong>"Add note [your content]"</strong>
+                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                                Say: <strong style={{ color: '#e2e8f0' }}>"Add note [your content]"</strong>
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#388e3c', mt: 0.5 }}>
+                            <Typography variant="body2" sx={{ color: '#94a3b8', mt: 0.5 }}>
                                 Examples: "Add note buy groceries", "Create note meeting at 3pm"
                             </Typography>
                         </Paper>
 
                         {/* Delete Note */}
-                        <Paper sx={{ p: 2, bgcolor: '#ffebee', borderLeft: '4px solid #f44336' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#c62828', mb: 1 }}>
+                        <Paper sx={{ p: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderLeft: '4px solid #ef4444' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ef4444', mb: 1 }}>
                                 🗑️ Delete a Note
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#d32f2f' }}>
-                                Say: <strong>"Delete [note content]"</strong> or <strong>"Remove [note content]"</strong>
+                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                                Say: <strong style={{ color: '#e2e8f0' }}>"Delete [note content]"</strong> or <strong style={{ color: '#e2e8f0' }}>"Remove [note content]"</strong>
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#d32f2f', mt: 0.5 }}>
+                            <Typography variant="body2" sx={{ color: '#94a3b8', mt: 0.5 }}>
                                 Example: "Delete groceries"
                             </Typography>
                         </Paper>
 
                         {/* List Notes */}
-                        <Paper sx={{ p: 2, bgcolor: '#e3f2fd', borderLeft: '4px solid #2196f3' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1565c0', mb: 1 }}>
+                        <Paper sx={{ p: 2, bgcolor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderLeft: '4px solid #f59e0b' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#f59e0b', mb: 1 }}>
                                 📋 List Notes
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#1976d2' }}>
-                                Say: <strong>"List notes"</strong> or <strong>"Show notes"</strong>
+                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                                Say: <strong style={{ color: '#e2e8f0' }}>"List notes"</strong> or <strong style={{ color: '#e2e8f0' }}>"Show notes"</strong>
                             </Typography>
                         </Paper>
 
                         {/* Help */}
-                        <Paper sx={{ p: 2, bgcolor: '#fff3e0', borderLeft: '4px solid #ff9800' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#e65100', mb: 1 }}>
+                        <Paper sx={{ p: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderLeft: '4px solid #10b981' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#10b981', mb: 1 }}>
                                 ❓ Get Help
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#f57c00' }}>
-                                Say: <strong>"Help"</strong> to see all commands
+                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                                Say: <strong style={{ color: '#e2e8f0' }}>"Help"</strong> to see all commands
                             </Typography>
                         </Paper>
 
-                        <Typography variant="caption" sx={{ mt: 2, color: '#666', textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ mt: 2, color: '#94a3b8', textAlign: 'center' }}>
                             💡 Tip: Speak clearly and at a normal pace for best results
                         </Typography>
                     </Box>
@@ -332,20 +342,20 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                     elevation={3}
                     sx={{
                         position: 'fixed',
-                        bottom: 200,
-                        right: 24,
+                        bottom: { xs: 90, sm: 100 },
+                        right: { xs: 16, sm: 24 },
                         p: 2.5,
                         maxWidth: 320,
                         maxHeight: 400,
                         overflowY: 'auto',
                         borderRadius: 3,
-                        background: 'rgba(30, 41, 59, 0.95)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                        background: 'rgba(21, 27, 46, 0.95)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(45, 212, 191, 0.3)',
                         borderLeft: '4px solid',
-                        borderLeftColor: isListening ? '#8b5cf6' : '#10b981',
+                        borderLeftColor: isListening ? '#2dd4bf' : '#10b981',
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-                        zIndex: 1000
+                        zIndex: 1400
                     }}
                 >
                     {/* Feedback Message */}
@@ -367,11 +377,11 @@ const VoiceControl = ({ onAddNote, onDeleteNote, onEditNote, notes }) => {
                             <VolumeUpIcon 
                                 sx={{ 
                                     fontSize: 18, 
-                                    color: '#8b5cf6',
+                                    color: '#2dd4bf',
                                     animation: 'bounce 1s infinite'
                                 }} 
                             />
-                            <Typography variant="caption" sx={{ color: '#a78bfa', fontWeight: 600 }}>
+                            <Typography variant="caption" sx={{ color: '#2dd4bf', fontWeight: 600 }}>
                                 Listening...
                             </Typography>
                         </Box>
