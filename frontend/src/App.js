@@ -242,7 +242,7 @@ function App() {
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [googleAuthorized, setGoogleAuthorized] = useState(false);
   const [checkingGoogleAuth, setCheckingGoogleAuth] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile drawer
 
   // AI-related state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
@@ -326,9 +326,15 @@ function App() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/google/status`);
       const data = await response.json();
-      
+
       const isAuthorized = data.authorized || false;
+      const wasAuthorized = googleAuthorized;
       setGoogleAuthorized(isAuthorized);
+
+      // If just became authorized, reload notes to show calendar events
+      if (isAuthorized && !wasAuthorized) {
+        fetchNotes();
+      }
 
       // If token expired, show notification
       if (!isAuthorized && data.reason === 'token_expired') {
@@ -592,10 +598,10 @@ function App() {
           prev.map((n) =>
             n.id === noteId
               ? {
-                  ...n,
-                  content: data.content || newContent,
-                  link: data.link || newLink,
-                }
+                ...n,
+                content: data.content || newContent,
+                link: data.link || newLink,
+              }
               : n
           )
         );
@@ -653,8 +659,8 @@ function App() {
     selectedCategory === "All"
       ? notes
       : notes.filter(
-          (note) => getNoteCategory(note.content) === selectedCategory
-        );
+        (note) => getNoteCategory(note.content) === selectedCategory
+      );
 
   const allCategories = [
     "All",
@@ -691,9 +697,7 @@ function App() {
     return { labels, values };
   }, [notes]);
 
-  const [miniAnalyticsOpen, setMiniAnalyticsOpen] = useState(false);
-  const [miniAnalyticsVisible, setMiniAnalyticsVisible] = useState(true);
-  const totalNotes = useMemo(() => (notes ? notes.length : 0), [notes]);
+
 
   const renderNoteContent = (content, link) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -777,9 +781,8 @@ function App() {
         WebkitBackdropFilter: "blur(20px)",
         borderRadius: 4,
         border: "1px solid rgba(139, 92, 246, 0.2)",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
         p: 2.5,
-        maxHeight: "calc(100vh - 120px)",
+        height: "100%",
         overflowY: "auto",
         "&::-webkit-scrollbar": {
           width: "6px",
@@ -808,31 +811,32 @@ function App() {
       >
         📂 Categories
       </Typography>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 3 }}>
         {allCategories.map((category) => (
           <Box
             key={category}
             onClick={() => {
               setSelectedCategory(category);
               setSidebarOpen(false);
+              if (currentView === "analytics") setCurrentView("notes");
             }}
             sx={{
               px: 2.5,
               py: 1.5,
               borderRadius: 3,
               background:
-                selectedCategory === category 
+                selectedCategory === category && currentView === "notes"
                   ? "#615af1"
                   : "transparent",
-              color: selectedCategory === category ? "white" : "#cbd5e1",
+              color: selectedCategory === category && currentView === "notes" ? "white" : "#cbd5e1",
               cursor: "pointer",
-              fontWeight: selectedCategory === category ? 700 : 600,
+              fontWeight: selectedCategory === category && currentView === "notes" ? 700 : 600,
               fontSize: "0.9rem",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               border: "1px solid transparent",
               "&:hover": {
                 background:
-                  selectedCategory === category 
+                  selectedCategory === category && currentView === "notes"
                     ? "#4a47d1"
                     : "rgba(97, 90, 241, 0.2)",
                 transform: "translateX(4px)",
@@ -842,6 +846,39 @@ function App() {
             {category}
           </Box>
         ))}
+      </Box>
+
+      <Box sx={{
+        pt: 2,
+        borderTop: "1px solid rgba(139, 92, 246, 0.2)",
+      }}>
+        <Box
+          onClick={() => {
+            setCurrentView("analytics");
+            setSidebarOpen(false);
+          }}
+          sx={{
+            px: 2.5,
+            py: 1.5,
+            borderRadius: 3,
+            background: currentView === "analytics" ? "#615af1" : "transparent",
+            color: currentView === "analytics" ? "white" : "#cbd5e1",
+            cursor: "pointer",
+            fontWeight: currentView === "analytics" ? 700 : 600,
+            fontSize: "0.9rem",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            border: "1px solid transparent",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            "&:hover": {
+              background: currentView === "analytics" ? "#4a47d1" : "rgba(97, 90, 241, 0.2)",
+              transform: "translateX(4px)",
+            },
+          }}
+        >
+          📊 Analytics
+        </Box>
       </Box>
     </Box>
   );
@@ -871,78 +908,86 @@ function App() {
           <Toolbar
             sx={{
               py: { xs: 1, sm: 1.5 },
-              px: { xs: 1, sm: 2, md: 4 },
+              px: { xs: 0.5, sm: 2, md: 4 },
               minHeight: { xs: 56, sm: 64 },
+              gap: { xs: 0.5, sm: 1 },
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
-            {currentView === "notes" && (
-              <IconButton
-                onClick={() => setSidebarOpen(true)}
-                sx={{
-                  mr: { xs: 0.5, sm: 1 },
-                  display: { xs: "flex", md: "none" },
-                  color: "white",
-                  background: "rgba(255, 255, 255, 0.15)",
-                  backdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  p: { xs: 0.5, sm: 1 },
-                  "&:hover": {
-                    background: "rgba(255, 255, 255, 0.25)",
-                  },
-                }}
-                size="small"
-              >
-                <MenuIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
-              </IconButton>
-            )}
+            <IconButton
+              onClick={() => setSidebarOpen(true)}
+              sx={{
+                mr: { xs: 0, sm: 1 },
+                display: { xs: "flex", md: "none" },
+                color: "white",
+                background: "rgba(255, 255, 255, 0.15)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                p: { xs: 0.4, sm: 1 },
+                "&:hover": {
+                  background: "rgba(255, 255, 255, 0.25)",
+                },
+              }}
+              size="small"
+            >
+              <MenuIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
+            </IconButton>
 
             <Typography
               variant="h5"
               component="div"
               sx={{
-                flexGrow: 1,
+                flexShrink: 0, // Prevent logo from shrinking
                 color: "white",
                 fontWeight: 900,
-                fontSize: { xs: "1.3rem", sm: "1.7rem", md: "2.2rem" },
+                fontSize: { xs: "1.1rem", sm: "1.7rem", md: "2.2rem" },
                 letterSpacing: "-1.5px",
                 display: "flex",
                 alignItems: "center",
                 gap: { xs: 0.5, sm: 1 },
                 textShadow: "0 2px 20px rgba(0, 0, 0, 0.2)",
                 filter: "drop-shadow(0 0 20px rgba(255, 255, 255, 0.3))",
+                mr: { xs: 1, sm: 2 },
               }}
             >
               <Box
                 sx={{
                   background: "#615af1",
-                  borderRadius: "12px",
-                  p: 0.8,
+                  borderRadius: { xs: "8px", sm: "12px" },
+                  p: { xs: 0.5, sm: 0.8 },
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <SmartToyIcon sx={{ 
-                  fontSize: { xs: 20, sm: 26, md: 30 },
+                <SmartToyIcon sx={{
+                  fontSize: { xs: 18, sm: 26, md: 30 },
                   color: "white",
                 }} />
               </Box>
-              <span>MindSync</span>
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                MindSync
+              </Box>
             </Typography>
 
             <Tabs
               value={currentView}
               onChange={(e, newValue) => setCurrentView(newValue)}
               sx={{
-                mr: { xs: 0.5, sm: 1, md: 2 },
+                flexGrow: 1, // Allow tabs to take available space
                 minHeight: { xs: 40, sm: 48 },
+                "& .MuiTabs-flexContainer": {
+                  gap: { xs: 0.5, sm: 1 },
+                  height: '100%',
+                },
                 "& .MuiTab-root": {
                   textTransform: "none",
                   fontWeight: 600,
                   minHeight: { xs: 40, sm: 48 },
-                  minWidth: { xs: 40, sm: 80, md: 100 },
-                  px: { xs: 0.5, sm: 1.5, md: 2 },
-                  fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
+                  minWidth: { xs: 50, sm: 70, md: 80 },
+                  px: { xs: 1, sm: 1.5 },
+                  color: "rgba(255, 255, 255, 0.7)",
                 },
                 "& .Mui-selected": {
                   color: "white",
@@ -953,36 +998,22 @@ function App() {
                   height: 3,
                   borderRadius: "3px 3px 0 0",
                 },
-                "& .MuiTab-root": {
-                  color: "rgba(255, 255, 255, 0.7)",
-                },
               }}
             >
               <Tab
-                icon={
-                  <NotesIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
-                }
-                iconPosition="start"
+                icon={<NotesIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
                 value="notes"
-                sx={{
-                  "& .MuiTab-iconWrapper": {
-                    mr: { xs: 0, sm: 0.5, md: 1 },
-                  },
-                }}
+                title="Notes"
               />
               <Tab
-                icon={
-                  <CalendarMonthIcon
-                    sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }}
-                  />
-                }
-                iconPosition="start"
+                icon={<CalendarMonthIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
                 value="calendar"
-                sx={{
-                  "& .MuiTab-iconWrapper": {
-                    mr: { xs: 0, sm: 0.5, md: 1 },
-                  },
-                }}
+                title="Calendar"
+              />
+              <Tab
+                icon={<BarChartIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />}
+                value="analytics"
+                title="Analytics"
               />
             </Tabs>
 
@@ -991,7 +1022,7 @@ function App() {
                 sx={{
                   display: "flex",
                   gap: { xs: 0.25, sm: 0.5 },
-                  mr: { xs: 0.5, sm: 1, md: 2 },
+                  flexShrink: 0,
                 }}
               >
                 <IconButton
@@ -1038,9 +1069,7 @@ function App() {
                   }}
                   title="Single Card View"
                 >
-                  <ViewAgendaIcon
-                    sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }}
-                  />
+                  <ViewAgendaIcon sx={{ fontSize: { xs: 18, sm: 20, md: 24 } }} />
                 </IconButton>
               </Box>
             )}
@@ -1048,19 +1077,16 @@ function App() {
             <Button
               onClick={() => {
                 window.open(`${API_BASE_URL}/auth/google`, "_blank");
-                
-                // Check status more frequently
+
                 const statusCheckInterval = setInterval(async () => {
                   await checkGoogleAuthStatus();
                 }, 1000);
-                
-                // Also check when user returns to this tab
+
                 const handleFocus = async () => {
                   await checkGoogleAuthStatus();
                 };
                 window.addEventListener('focus', handleFocus);
-                
-                // Clean up after 30 seconds
+
                 setTimeout(() => {
                   clearInterval(statusCheckInterval);
                   window.removeEventListener('focus', handleFocus);
@@ -1068,13 +1094,14 @@ function App() {
               }}
               variant="contained"
               sx={{
+                flexShrink: 0, // Prevent button from shrinking
                 textTransform: "none",
                 fontWeight: 700,
-                borderRadius: { xs: 2, sm: 3 },
-                px: { xs: 1.5, sm: 2.5, md: 3.5 },
-                py: { xs: 0.75, sm: 1, md: 1.2 },
-                fontSize: { xs: "0.7rem", sm: "0.8rem", md: "0.9rem" },
-                minWidth: { xs: "90px", sm: "120px", md: "150px" },
+                borderRadius: { xs: 1.5, sm: 3 },
+                px: { xs: 1, sm: 2.5, md: 3.5 },
+                py: { xs: 0.5, sm: 1, md: 1.2 },
+                fontSize: { xs: "0.65rem", sm: "0.8rem", md: "0.9rem" },
+                minWidth: { xs: "60px", sm: "120px", md: "150px" },
                 background: "#615af1",
                 color: "white",
                 border: "none",
@@ -1084,11 +1111,12 @@ function App() {
               }}
               disabled={checkingGoogleAuth}
             >
-              {checkingGoogleAuth
-                ? "..."
-                : googleAuthorized
-                ? "✓ Calendar"
-                : "Connect"}
+              <Box component="span" sx={{ display: { xs: "inline", lg: "none" } }}>
+                {checkingGoogleAuth ? "..." : googleAuthorized ? "✓" : "Cal"}
+              </Box>
+              <Box component="span" sx={{ display: { xs: "none", lg: "inline" } }}>
+                {checkingGoogleAuth ? "..." : googleAuthorized ? "✓ Calendar" : "Connect"}
+              </Box>
             </Button>
           </Toolbar>
         </AppBar>
@@ -1175,120 +1203,6 @@ function App() {
           onFileUpload={handleFileUpload}
         />
 
-        {miniAnalyticsVisible && (
-          <Paper
-            onClick={() => setMiniAnalyticsOpen(true)}
-            elevation={6}
-            sx={{
-              position: "fixed",
-              bottom: { xs: 16, sm: 24 },
-              left: { xs: 16, sm: 24 },
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              px: 2,
-              py: 1,
-              borderRadius: 3,
-              cursor: "pointer",
-              zIndex: 1200,
-              background: "rgba(30, 41, 59, 0.8)",
-              backdropFilter: "blur(20px)",
-              border: "1px solid rgba(139, 92, 246, 0.3)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: "0 12px 40px rgba(139, 92, 246, 0.4)",
-                borderColor: "rgba(139, 92, 246, 0.5)",
-              },
-            }}
-          >
-            <Typography sx={{ fontWeight: 700, fontSize: "0.95rem" }}>
-              📊
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Typography sx={{ fontSize: "0.85rem", fontWeight: 700, color: "#f1f5f9" }}>
-                All notes
-              </Typography>
-              <Typography sx={{ fontSize: "0.75rem", color: "#cbd5e1" }}>
-                {totalNotes} notes
-              </Typography>
-            </Box>
-          </Paper>
-        )}
-
-        <IconButton
-          aria-label="toggle-analytics-summary"
-          onClick={() => setMiniAnalyticsVisible((v) => !v)}
-          sx={{
-            position: "fixed",
-            bottom: { xs: 80, sm: 96 },
-            left: { xs: 22, sm: 30 },
-            display: "flex",
-            zIndex: 1200,
-            bgcolor: "background.paper",
-            boxShadow: 3,
-            width: 44,
-            height: 44,
-            borderRadius: "50%",
-            transition: "all 0.3s ease",
-          }}
-          size="large"
-          title={
-            miniAnalyticsVisible
-              ? "Hide analytics summary"
-              : "Show analytics summary"
-          }
-        >
-          <BarChartIcon color={miniAnalyticsVisible ? "primary" : "inherit"} />
-        </IconButton>
-
-        <Dialog
-          open={miniAnalyticsOpen}
-          onClose={() => setMiniAnalyticsOpen(false)}
-          fullWidth
-          maxWidth="sm"
-          PaperProps={{
-            sx: {
-              background: 'rgba(30, 41, 59, 0.8)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-              m: { xs: 2, sm: 3 },
-              maxWidth: { xs: 'calc(100% - 32px)', sm: '600px' },
-            },
-          }}
-        >
-          <DialogTitle sx={{ 
-            color: '#f1f5f9', 
-            borderBottom: '1px solid rgba(139, 92, 246, 0.3)',
-            pb: { xs: 3, sm: 3 },
-            mb: { xs: 2, sm: 0 }
-          }}>
-            Analytics
-          </DialogTitle>
-          <DialogContent sx={{ 
-            p: { xs: 2, sm: 3 }, 
-            pt: { xs: 3, sm: 3 },
-            overflow: 'hidden' 
-          }}>
-            <AnalyticsDashboard data={analyticsData} />
-          </DialogContent>
-          <DialogActions sx={{ borderTop: '1px solid rgba(139, 92, 246, 0.3)', p: 2 }}>
-            <Button 
-              onClick={() => setMiniAnalyticsOpen(false)}
-              sx={{
-                color: '#cbd5e1',
-                '&:hover': {
-                  background: 'rgba(139, 92, 246, 0.1)',
-                },
-              }}
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-
         <Dialog
           open={editDialogOpen}
           onClose={() => setEditDialogOpen(false)}
@@ -1328,18 +1242,64 @@ function App() {
           </DialogActions>
         </Dialog>
 
-        <Container 
-          maxWidth="xl" 
-          sx={{ 
-            mt: 4, 
-            mb: 6, 
-            px: { xs: 2, sm: 4 },
+        <Box
+          sx={{
+            mt: currentView === "analytics" ? 0 : 4,
+            mb: currentView === "analytics" ? 0 : 6,
+            px: currentView === "analytics" ? 0 : { xs: 2, sm: 4 },
             position: "relative",
             zIndex: 1,
+            width: "100%",
           }}
         >
           {currentView === "calendar" ? (
             <CalendarView googleAuthorized={googleAuthorized} />
+          ) : currentView === "analytics" ? (
+            <Box
+              sx={{
+                display: "flex",
+                minHeight: "100vh",
+                width: { xs: "100%", md: "100vw" },
+                position: "relative",
+                left: { xs: 0, md: "50%" },
+                right: { xs: 0, md: "50%" },
+                marginLeft: { xs: 0, md: "-50vw" },
+                marginRight: { xs: 0, md: "-50vw" },
+                background: "#0f172a",
+                pt: { xs: 2, md: 3 },
+                px: { xs: 2, md: 3 },
+              }}
+            >
+              {/* Spacer for sidebar */}
+              <Box
+                sx={{
+                  width: { xs: "0", md: "240px" },
+                  flexShrink: 0,
+                  display: { xs: "none", md: "block" },
+                }}
+              />
+
+              {/* Fixed sidebar */}
+              <Box
+                sx={{
+                  position: "fixed",
+                  left: { md: 24 },
+                  top: 100,
+                  bottom: 24,
+                  width: "240px",
+                  display: { xs: "none", md: "block" },
+                  zIndex: 100,
+                  overflowY: "auto",
+                }}
+              >
+                <CategorySidebar />
+              </Box>
+
+              {/* Analytics Content */}
+              <Box sx={{ flex: 1, minWidth: 0, width: "100%" }}>
+                <AnalyticsDashboard data={analyticsData} />
+              </Box>
+            </Box>
           ) : (
             <Box
               sx={{
@@ -1349,6 +1309,7 @@ function App() {
                 width: "100%",
               }}
             >
+              {/* Spacer for sidebar */}
               <Box
                 sx={{
                   width: { xs: "0", md: "240px" },
@@ -1357,14 +1318,17 @@ function App() {
                 }}
               />
 
+              {/* Fixed sidebar */}
               <Box
                 sx={{
                   position: "fixed",
                   left: { xs: 0, sm: 16, md: 32 },
-                  top: 100,
+                  top: 105,
+                  bottom: 24,
                   width: "240px",
                   display: { xs: "none", md: "block" },
                   zIndex: 100,
+                  overflowY: "auto",
                 }}
               >
                 <CategorySidebar />
@@ -1606,11 +1570,9 @@ function App() {
                                   cursor: "pointer",
                                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                   borderRadius: { xs: 3, md: 4 },
-                                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
                                   display: "flex",
                                   flexDirection: "column",
                                   "&:hover": {
-                                    boxShadow: "0 8px 32px rgba(139, 92, 246, 0.3)",
                                     transform: { xs: "none", md: "translateY(-4px)" },
                                     borderColor: "rgba(139, 92, 246, 0.5)",
                                     "& .action-buttons": {
@@ -1831,7 +1793,6 @@ function App() {
                                   overflow: "hidden",
                                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                   borderRadius: 4,
-                                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
                                   width: "100%",
 
                                   // ⭐ FIXED HEIGHT + layout
@@ -1840,7 +1801,6 @@ function App() {
                                   flexDirection: "column",
 
                                   "&:hover": {
-                                    boxShadow: "0 8px 32px rgba(139, 92, 246, 0.3)",
                                     transform: "translateY(-4px)",
                                     borderColor: "rgba(139, 92, 246, 0.5)",
                                   },
@@ -2037,7 +1997,6 @@ function App() {
                               backdropFilter: "blur(20px)",
                               borderRadius: 4,
                               border: "1px solid rgba(139, 92, 246, 0.2)",
-                              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
                             }}
                           >
                             <Pagination
@@ -2109,7 +2068,7 @@ function App() {
               </Box>
             </Box>
           )}
-        </Container>
+        </Box>
 
         <Menu
           anchorEl={colorMenuAnchor}

@@ -198,12 +198,10 @@ const InspirationCard = () => {
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         /* GLASSMORPHISM */
         border: "1px solid rgba(139, 92, 246, 0.2)",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: "0 12px 40px rgba(97, 90, 241, 0.4)",
           borderColor: "rgba(97, 90, 241, 0.5)",
         },
         // soft highlight
