@@ -320,18 +320,22 @@ export function AiDialog({
             borderRadius: 2,
             minWidth: "100px",
             background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
-            color: "#0a0e1a",
-            fontWeight: 600,
+            color: "#000000 !important",
+            fontWeight: 700,
+            fontSize: "0.95rem",
             boxShadow: "0 4px 16px rgba(45, 212, 191, 0.3)",
             "&:hover": {
               background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)",
               boxShadow: "0 6px 20px rgba(45, 212, 191, 0.4)",
             },
+            "& *": {
+              color: "#000000 !important",
+            },
           }}
         >
           {loading ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <CircularProgress size={16} color="inherit" />
+              <CircularProgress size={16} sx={{ color: "#000000 !important" }} />
               {submitLabel}
             </Box>
           ) : (
