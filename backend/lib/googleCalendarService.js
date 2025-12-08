@@ -24,10 +24,17 @@ class GoogleCalendarService {
       const credentials = JSON.parse(fs.readFileSync(this.credentialsPath, 'utf8'));
       const creds = credentials.installed || credentials.web;
 
+      // Use production redirect URI if in production, otherwise localhost
+      const redirectUri = process.env.NODE_ENV === 'production' 
+        ? creds.redirect_uris.find(uri => uri.includes('onrender.com')) || creds.redirect_uris[1]
+        : creds.redirect_uris[0];
+
+      console.log('🔧 Using OAuth redirect URI:', redirectUri);
+
       this.oauth2Client = new google.auth.OAuth2(
         creds.client_id,
         creds.client_secret,
-        creds.redirect_uris[0]
+        redirectUri
       );
 
       // Set up automatic token refresh
