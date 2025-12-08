@@ -63,6 +63,9 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Trust proxy - Required for rate limiting behind reverse proxies (Render, Heroku, etc.)
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
