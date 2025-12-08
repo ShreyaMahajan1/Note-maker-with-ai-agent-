@@ -33,6 +33,7 @@ class NotesService {
                 calendarEventId: note.calendarEventId,
                 calendarEventUrl: note.calendarEventUrl,
                 isDuplicate: note.isDuplicate,
+                pinned: note.pinned || false,
                 createdAt: note.createdAt,
                 updatedAt: note.updatedAt,
             }));
@@ -65,6 +66,7 @@ class NotesService {
                 calendarEventId: note.calendarEventId,
                 calendarEventUrl: note.calendarEventUrl,
                 isDuplicate: note.isDuplicate,
+                pinned: note.pinned || false,
                 createdAt: note.createdAt,
                 updatedAt: note.updatedAt,
             };
@@ -94,6 +96,7 @@ class NotesService {
                 calendarEventId: note.calendarEventId,
                 calendarEventUrl: note.calendarEventUrl,
                 isDuplicate: note.isDuplicate,
+                pinned: note.pinned || false,
                 createdAt: note.createdAt,
                 updatedAt: note.updatedAt,
             };
@@ -132,6 +135,7 @@ class NotesService {
                 calendarEventId: note.calendarEventId,
                 calendarEventUrl: note.calendarEventUrl,
                 isDuplicate: note.isDuplicate,
+                pinned: note.pinned || false,
                 createdAt: note.createdAt,
                 updatedAt: note.updatedAt,
             };

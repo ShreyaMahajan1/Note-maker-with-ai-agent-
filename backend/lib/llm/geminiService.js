@@ -27,7 +27,7 @@ class GeminiService {
 
     try {
       const response = await this.client.models.generateContent({
-        model: 'gemini-2.5-flash', // ya 'gemini-1.5-flash' / 'gemini-2.0-flash'
+        model: 'gemini-2.5-flash', // Stable model that works
         contents: [
           {
             role: 'user',

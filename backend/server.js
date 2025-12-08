@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 require('dotenv').config();
 const aiUtils = require('./lib/aiUtils');
 const notesService = require('./lib/notesService');
@@ -41,7 +42,7 @@ let notes = [];
 // Rate Limiters
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 500, // Increased from 100 to 500 - allows for frequent polling and development
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -49,7 +50,7 @@ const generalLimiter = rateLimit({
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 10, // Limit AI requests to 10 per minute
+  max: 20, // Increased from 10 to 20 - allows for more AI interactions
   message: { error: 'Too many AI requests, please slow down.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -57,7 +58,7 @@ const aiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit auth attempts to 5 per 15 minutes
+  max: 10, // Increased from 5 to 10 - allows for more auth attempts during setup
   message: { error: 'Too many authentication attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -66,9 +67,16 @@ const authLimiter = rateLimit({
 // Trust proxy - Required for rate limiting behind reverse proxies (Render, Heroku, etc.)
 app.set('trust proxy', 1);
 
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for now to allow external resources
+  crossOriginEmbedderPolicy: false,
+}));
+
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Add size limit
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(generalLimiter); // Apply general rate limiting to all routes
 
 // Error handling middleware for JSON parsing
@@ -258,6 +266,64 @@ app.put('/api/notes/:id', async (req, res) => {
     } else {
       res.status(500).json({ error: 'Failed to update note' });
     }
+  }
+});
+
+// PATCH /api/notes/:id/pin - Toggle pin status
+app.patch('/api/notes/:id/pin', async (req, res) => {
+  try {
+    const noteId = req.params.id;
+    const { pinned } = req.body;
+    
+    const updatedNote = await notesService.updateNote(noteId, { pinned });
+    res.json(updatedNote);
+  } catch (error) {
+    if (error.message === 'Note not found') {
+      res.status(404).json({ error: 'Note not found' });
+    } else {
+      res.status(500).json({ error: 'Failed to pin/unpin note' });
+    }
+  }
+});
+
+// DELETE /api/notes/bulk - Bulk delete notes
+app.delete('/api/notes/bulk', async (req, res) => {
+  try {
+    const { noteIds } = req.body;
+    
+    if (!Array.isArray(noteIds) || noteIds.length === 0) {
+      return res.status(400).json({ error: 'noteIds array is required' });
+    }
+
+    const results = await Promise.all(
+      noteIds.map(async (id) => {
+        try {
+          const note = await notesService.getNoteById(id);
+          
+          // Delete from Google Calendar if exists
+          if (note && note.calendarEventId && googleCal.isAuthorized()) {
+            try {
+              await googleCal.deleteEvent(note.calendarEventId);
+            } catch (calErr) {
+              console.warn(`Failed to delete calendar event for note ${id}:`, calErr.message);
+            }
+          }
+          
+          await notesService.deleteNote(id);
+          return { id, success: true };
+        } catch (error) {
+          return { id, success: false, error: error.message };
+        }
+      })
+    );
+
+    const successCount = results.filter(r => r.success).length;
+    res.json({ 
+      message: `Deleted ${successCount} of ${noteIds.length} notes`,
+      results 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to bulk delete notes' });
   }
 });
 

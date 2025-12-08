@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Container,
   AppBar,
@@ -51,11 +52,23 @@ import LinkIcon from "@mui/icons-material/Link";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import DownloadIcon from "@mui/icons-material/Download";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
+import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import SelectAllIcon from "@mui/icons-material/SelectAll";
 import { AiDialog } from "./components/AiDialog";
 import VoiceControl from "./components/VoiceControl";
 import NotesGrid from "./components/NotesGrid";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import CalendarView from "./components/CalendarView";
+import { NotesGridSkeleton, CalendarSkeleton, AnalyticsSkeleton } from "./components/LoadingSkeleton";
+import { EmptyNotes, EmptySearch, EmptyCalendar, EmptyAnalytics } from "./components/EmptyState";
+import { useKeyboardShortcuts, KeyboardShortcutsDialog } from "./components/KeyboardShortcuts";
+import ExportDialog from "./components/ExportDialog";
+import { exportToJSON, exportToCSV, exportToMarkdown, exportToText } from "./utils/exportUtils";
 import "./App.css";
 import InspirationCard from "./components/inspirationCard";
 import API_BASE_URL from "./config";
@@ -230,6 +243,39 @@ function App() {
   const [editNoteContent, setEditNoteContent] = useState("");
   const [editNoteLink, setEditNoteLink] = useState("");
 
+  // Export and search state
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Delete confirmation and undo state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState(null);
+  const [deletedNote, setDeletedNote] = useState(null);
+  const [showUndoSnackbar, setShowUndoSnackbar] = useState(false);
+
+  // Bulk selection state
+  const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [selectedNotes, setSelectedNotes] = useState([]);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+
+  // Keyboard shortcuts
+  const { shortcutsOpen, setShortcutsOpen } = useKeyboardShortcuts({
+    onNewNote: () => {
+      const textarea = document.querySelector('textarea[placeholder*="What\'s on your mind"]');
+      if (textarea) {
+        textarea.focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    onSearch: () => {
+      const searchInput = document.querySelector('input[placeholder*="Search"]');
+      if (searchInput) searchInput.focus();
+    },
+    onSave: () => handleAddNote(),
+    onExport: () => setExportDialogOpen(true),
+    onViewChange: (view) => setCurrentView(view),
+  });
+
   const aiActions = [
     {
       icon: <SmartToyIcon />,
@@ -324,7 +370,7 @@ function App() {
   useEffect(() => {
     const authCheckInterval = setInterval(() => {
       checkGoogleAuthStatus();
-    }, 60000); // Check every minute
+    }, 5 * 60000); // Check every 5 minutes (reduced from 1 minute to avoid rate limiting)
 
     return () => clearInterval(authCheckInterval);
   }, []);
@@ -410,17 +456,133 @@ function App() {
     }
   };
 
-  const handleDeleteNote = async (id) => {
+  const handleDeleteClick = (note) => {
+    setNoteToDelete(note);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteNote = async () => {
+    if (!noteToDelete) return;
+    
+    const noteToRemove = noteToDelete;
+    setDeleteConfirmOpen(false);
+    
     try {
-      setNotes(notes.filter((note) => note.id !== id));
-      const response = await fetch(`${API_BASE_URL}/api/notes/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        showSnackbar("Note deleted successfully");
-      } else {
-        throw new Error("Failed to delete note");
+      // Store the deleted note for undo
+      setDeletedNote(noteToRemove);
+      
+      // Remove from UI immediately
+      setNotes(notes.filter((note) => note.id !== noteToRemove.id));
+      
+      // Show undo snackbar
+      setShowUndoSnackbar(true);
+      
+      // Set timeout to actually delete from backend
+      const deleteTimeout = setTimeout(async () => {
+        const response = await fetch(`${API_BASE_URL}/api/notes/${noteToRemove.id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error("Failed to delete note");
+        }
+        setDeletedNote(null);
+      }, 5000); // 5 seconds to undo
+      
+      // Store timeout ID for potential cancellation
+      noteToRemove.deleteTimeout = deleteTimeout;
+      
+    } catch (error) {
+      showSnackbar(error.message, "error");
+      fetchNotes();
+    } finally {
+      setNoteToDelete(null);
+    }
+  };
+
+  const handleUndoDelete = () => {
+    if (deletedNote) {
+      // Cancel the delete timeout
+      if (deletedNote.deleteTimeout) {
+        clearTimeout(deletedNote.deleteTimeout);
       }
+      
+      // Restore the note
+      setNotes([deletedNote, ...notes]);
+      setDeletedNote(null);
+      setShowUndoSnackbar(false);
+      showSnackbar("Note restored", "success");
+    }
+  };
+
+  const handlePinNote = async (noteId) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    const newPinnedState = !note.pinned;
+    
+    // Optimistic update
+    setNotes(notes.map(n => 
+      n.id === noteId ? { ...n, pinned: newPinnedState } : n
+    ));
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}/pin`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinned: newPinnedState }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to pin/unpin note');
+      }
+
+      showSnackbar(newPinnedState ? "Note pinned" : "Note unpinned", "success");
+    } catch (error) {
+      // Revert on error
+      setNotes(notes.map(n => 
+        n.id === noteId ? { ...n, pinned: !newPinnedState } : n
+      ));
+      showSnackbar(error.message, "error");
+    }
+  };
+
+  const toggleNoteSelection = (noteId) => {
+    setSelectedNotes(prev =>
+      prev.includes(noteId)
+        ? prev.filter(id => id !== noteId)
+        : [...prev, noteId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedNotes.length === searchedNotes.length) {
+      setSelectedNotes([]);
+    } else {
+      setSelectedNotes(searchedNotes.map(note => note.id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleteConfirmOpen(false);
+    
+    if (selectedNotes.length === 0) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/notes/bulk`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noteIds: selectedNotes }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete notes');
+      }
+
+      // Remove deleted notes from UI
+      setNotes(notes.filter(note => !selectedNotes.includes(note.id)));
+      showSnackbar(`Deleted ${selectedNotes.length} notes`, "success");
+      setSelectedNotes([]);
+      setBulkSelectMode(false);
     } catch (error) {
       showSnackbar(error.message, "error");
       fetchNotes();
@@ -634,6 +796,20 @@ function App() {
         (note) => getNoteCategory(note.content) === selectedCategory
       );
 
+  // Apply search filter and sort (pinned first)
+  const searchedNotes = (searchTerm
+    ? filteredNotes.filter((note) =>
+        note.content.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : filteredNotes
+  ).sort((a, b) => {
+    // Pinned notes first
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    // Then by creation date (newest first)
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
   const allCategories = [
     "All",
     ...new Set(notes.map((note) => getNoteCategory(note.content))),
@@ -641,18 +817,44 @@ function App() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const notesPerPage = 10;
-  const totalPages = Math.ceil(filteredNotes.length / notesPerPage);
+  const totalPages = Math.ceil(searchedNotes.length / notesPerPage);
   const indexOfLastNote = currentPage * notesPerPage;
   const indexOfFirstNote = indexOfLastNote - notesPerPage;
-  const currentNotes = filteredNotes.slice(indexOfFirstNote, indexOfLastNote);
+  const currentNotes = searchedNotes.slice(indexOfFirstNote, indexOfLastNote);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, filteredNotes.length]);
+  }, [selectedCategory, searchedNotes.length]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleExport = (format) => {
+    const notesWithCategory = notes.map((note) => ({
+      ...note,
+      category: getNoteCategory(note.content),
+    }));
+
+    switch (format) {
+      case "json":
+        exportToJSON(notesWithCategory);
+        break;
+      case "csv":
+        exportToCSV(notesWithCategory);
+        break;
+      case "markdown":
+        exportToMarkdown(notesWithCategory);
+        break;
+      case "text":
+        exportToText(notesWithCategory);
+        break;
+      default:
+        break;
+    }
+    showSnackbar(`Notes exported as ${format.toUpperCase()}!`);
+    setExportDialogOpen(false);
   };
 
   const analyticsData = useMemo(() => {
@@ -849,6 +1051,85 @@ function App() {
           📊 Analytics
         </Box>
       </Box>
+
+      {/* Mobile-only Quick Actions */}
+      <Box sx={{
+        pt: 2,
+        mt: 2,
+        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+        display: { xs: "block", md: "none" },
+      }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            mb: 1.5,
+            fontWeight: 700,
+            color: "#f1f5f9",
+            fontSize: "0.85rem",
+          }}
+        >
+          ⚡ Quick Actions
+        </Typography>
+        
+        <Box
+          onClick={() => {
+            setExportDialogOpen(true);
+            setSidebarOpen(false);
+          }}
+          sx={{
+            px: 2.5,
+            py: 1.5,
+            mb: 1,
+            borderRadius: 3,
+            background: "transparent",
+            color: "#2dd4bf",
+            cursor: "pointer",
+            fontWeight: 500,
+            fontSize: "0.9rem",
+            transition: "all 0.15s ease",
+            border: "1px solid transparent",
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            "&:hover": {
+              background: "rgba(45, 212, 191, 0.08)",
+              transform: "translateX(2px)",
+            },
+          }}
+        >
+          <DownloadIcon sx={{ fontSize: 20 }} />
+          Export Notes
+        </Box>
+
+        <Box
+          onClick={() => {
+            setShortcutsOpen(true);
+            setSidebarOpen(false);
+          }}
+          sx={{
+            px: 2.5,
+            py: 1.5,
+            borderRadius: 3,
+            background: "transparent",
+            color: "#94a3b8",
+            cursor: "pointer",
+            fontWeight: 500,
+            fontSize: "0.9rem",
+            transition: "all 0.15s ease",
+            border: "1px solid transparent",
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            "&:hover": {
+              background: "rgba(148, 163, 184, 0.08)",
+              transform: "translateX(2px)",
+            },
+          }}
+        >
+          <HelpOutlineIcon sx={{ fontSize: 20 }} />
+          Keyboard Shortcuts
+        </Box>
+      </Box>
     </Box>
   );
 
@@ -983,6 +1264,57 @@ function App() {
                 title="Analytics"
               />
             </Tabs>
+
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                gap: 0.5,
+                flexShrink: 0,
+              }}
+            >
+              <IconButton
+                onClick={() => setExportDialogOpen(true)}
+                size="small"
+                sx={{
+                  color: "#2dd4bf",
+                  background: "rgba(45, 212, 191, 0.1)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(45, 212, 191, 0.3)",
+                  p: 1,
+                  borderRadius: 2,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: "rgba(45, 212, 191, 0.2)",
+                    transform: "scale(1.05)",
+                  },
+                }}
+                title="Export Notes (Ctrl+E)"
+              >
+                <DownloadIcon sx={{ fontSize: 24 }} />
+              </IconButton>
+
+              <IconButton
+                onClick={() => setShortcutsOpen(true)}
+                size="small"
+                sx={{
+                  color: "#94a3b8",
+                  background: "rgba(148, 163, 184, 0.1)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(148, 163, 184, 0.2)",
+                  p: 1,
+                  borderRadius: 2,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    background: "rgba(148, 163, 184, 0.2)",
+                    color: "#cbd5e1",
+                    transform: "scale(1.05)",
+                  },
+                }}
+                title="Keyboard Shortcuts (?)"
+              >
+                <HelpOutlineIcon sx={{ fontSize: 24 }} />
+              </IconButton>
+            </Box>
 
             {currentView === "notes" && (
               <Box
@@ -1252,7 +1584,11 @@ function App() {
           }}
         >
           {currentView === "calendar" ? (
-            <CalendarView googleAuthorized={googleAuthorized} />
+            loading ? (
+              <CalendarSkeleton />
+            ) : (
+              <CalendarView googleAuthorized={googleAuthorized} />
+            )
           ) : currentView === "analytics" ? (
             <Box
               sx={{
@@ -1296,7 +1632,13 @@ function App() {
 
               {/* Analytics Content */}
               <Box sx={{ flex: 1, minWidth: 0, width: "100%" }}>
-                <AnalyticsDashboard data={analyticsData} />
+                {loading ? (
+                  <AnalyticsSkeleton />
+                ) : notes.length === 0 ? (
+                  <EmptyAnalytics />
+                ) : (
+                  <AnalyticsDashboard data={analyticsData} />
+                )}
               </Box>
             </Box>
           ) : (
@@ -1334,24 +1676,27 @@ function App() {
               </Box>
 
               <Box sx={{ flex: 1, minWidth: 0, width: "100%" }}>
-                <Grid container spacing={4}>
-                  <Grid item xs={12}>
-                    <Card
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        background: "rgba(21, 27, 46, 0.7)",
-                        border: "1px solid rgba(255, 255, 255, 0.08)",
-                        borderRadius: 3,
-                      }}
-                    >
-                      <CardContent>
-                        <Typography
-                          variant="h6"
-                          sx={{ mb: 2, color: "#f1f5f9", fontWeight: 700 }}
-                        >
-                          ✨ Create a New Note
-                        </Typography>
+                {loading ? (
+                  <NotesGridSkeleton />
+                ) : (
+                  <Grid container spacing={4}>
+                    <Grid item xs={12}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          p: 3,
+                          background: "rgba(21, 27, 46, 0.7)",
+                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          borderRadius: 3,
+                        }}
+                      >
+                        <CardContent>
+                          <Typography
+                            variant="h6"
+                            sx={{ mb: 2, color: "#f1f5f9", fontWeight: 700 }}
+                          >
+                            ✨ Create a New Note
+                          </Typography>
                         <Box
                           sx={{
                             display: "flex",
@@ -1524,21 +1869,134 @@ function App() {
                   </Box>
 
                   <Grid item xs={12}>
-                    {filteredNotes.length === 0 ? (
-                      <Box sx={{ textAlign: "center", py: 12 }}>
-                        <Box sx={{ mb: 2, fontSize: "4rem" }}>📝</Box>
-                        <Typography
-                          variant="h6"
-                          sx={{ mb: 1, fontWeight: 700, color: "#cbd5e1" }}
+                    <Card
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        mb: 3,
+                        background: "rgba(21, 27, 46, 0.7)",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        borderRadius: 3,
+                      }}
+                    >
+                      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                        <TextField
+                          fullWidth
+                          placeholder="🔍 Search notes... (Ctrl+K)"
+                          variant="outlined"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: 2,
+                              border: "1px solid rgba(45, 212, 191, 0.2)",
+                              color: "#f1f5f9",
+                              "&:hover fieldset": {
+                                borderColor: "rgba(45, 212, 191, 0.4)",
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: "#2dd4bf",
+                                borderWidth: 2,
+                              },
+                            },
+                            "& .MuiOutlinedInput-input": {
+                              color: "#f1f5f9",
+                            },
+                            "& .MuiOutlinedInput-input::placeholder": {
+                              color: "#94a3b8",
+                              opacity: 1,
+                            },
+                          }}
+                        />
+                        <Button
+                          variant={bulkSelectMode ? "contained" : "outlined"}
+                          onClick={() => {
+                            setBulkSelectMode(!bulkSelectMode);
+                            setSelectedNotes([]);
+                          }}
+                          startIcon={<SelectAllIcon />}
+                          sx={{
+                            whiteSpace: "nowrap",
+                            borderColor: bulkSelectMode ? "transparent" : "rgba(45, 212, 191, 0.3)",
+                            color: bulkSelectMode ? "#0a0e1a" : "#2dd4bf",
+                            background: bulkSelectMode ? "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)" : "transparent",
+                            "&:hover": {
+                              borderColor: "rgba(45, 212, 191, 0.5)",
+                              background: bulkSelectMode ? "linear-gradient(135deg, #5eead4 0%, #2dd4bf 100%)" : "rgba(45, 212, 191, 0.1)",
+                            },
+                          }}
                         >
-                          No notes found
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                          {selectedCategory === "All"
-                            ? "Create your first note to get started!"
-                            : `No notes in the "${selectedCategory}" category yet`}
-                        </Typography>
+                          Select
+                        </Button>
                       </Box>
+                    </Card>
+                  </Grid>
+
+                  {/* Bulk Actions Toolbar */}
+                  {bulkSelectMode && (
+                    <Grid item xs={12}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          mb: 2,
+                          background: "linear-gradient(135deg, rgba(45, 212, 191, 0.15) 0%, rgba(20, 184, 166, 0.1) 100%)",
+                          border: "1px solid rgba(45, 212, 191, 0.3)",
+                          borderRadius: 3,
+                        }}
+                      >
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Typography sx={{ color: "#2dd4bf", fontWeight: 600 }}>
+                              {selectedNotes.length} selected
+                            </Typography>
+                            <Button
+                              size="small"
+                              onClick={handleSelectAll}
+                              sx={{ color: "#2dd4bf", textTransform: "none" }}
+                            >
+                              {selectedNotes.length === searchedNotes.length ? "Deselect All" : "Select All"}
+                            </Button>
+                          </Box>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              disabled={selectedNotes.length === 0}
+                              onClick={() => setBulkDeleteConfirmOpen(true)}
+                              sx={{
+                                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                                color: "white",
+                                "&:hover": {
+                                  background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                                },
+                                "&:disabled": {
+                                  background: "rgba(100, 116, 139, 0.3)",
+                                  color: "rgba(255, 255, 255, 0.3)",
+                                },
+                              }}
+                            >
+                              Delete ({selectedNotes.length})
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Card>
+                    </Grid>
+                  )}
+
+                  <Grid item xs={12}>
+                    {searchedNotes.length === 0 ? (
+                      searchTerm ? (
+                        <EmptySearch searchTerm={searchTerm} onClearSearch={() => setSearchTerm("")} />
+                      ) : filteredNotes.length === 0 ? (
+                        <EmptyNotes
+                          onCreateNote={() => {
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                            const textarea = document.querySelector('textarea[placeholder*="What\'s on your mind"]');
+                            if (textarea) textarea.focus();
+                          }}
+                          category={selectedCategory}
+                        />
+                      ) : null
                     ) : (
                       <>
                         {layoutMode === "grid" && (
@@ -1556,9 +2014,17 @@ function App() {
                               mb: 4,
                             }}
                           >
-                            {currentNotes.map((note) => (
-                              <Card
-                                key={note.id}
+                            <AnimatePresence mode="popLayout">
+                              {currentNotes.map((note, index) => (
+                                <motion.div
+                                  key={note.id}
+                                  layout
+                                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                                >
+                                  <Card
                                 sx={{
                                   backgroundColor: "rgba(21, 27, 46, 0.7)",
                                   border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -1593,6 +2059,48 @@ function App() {
                                     },
                                   }}
                                 >
+                                  {/* Pin and Checkbox Row */}
+                                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.5 }}>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePinNote(note.id);
+                                      }}
+                                      sx={{
+                                        p: 0.5,
+                                        color: note.pinned ? "#f59e0b" : "#64748b",
+                                        "&:hover": {
+                                          color: note.pinned ? "#d97706" : "#94a3b8",
+                                        },
+                                      }}
+                                      title={note.pinned ? "Unpin" : "Pin"}
+                                    >
+                                      {note.pinned ? (
+                                        <PushPinIcon sx={{ fontSize: { xs: 16, md: 18 } }} />
+                                      ) : (
+                                        <PushPinOutlinedIcon sx={{ fontSize: { xs: 16, md: 18 } }} />
+                                      )}
+                                    </IconButton>
+                                    
+                                    {bulkSelectMode && (
+                                      <IconButton
+                                        size="small"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleNoteSelection(note.id);
+                                        }}
+                                        sx={{ p: 0.5 }}
+                                      >
+                                        {selectedNotes.includes(note.id) ? (
+                                          <CheckBoxIcon sx={{ fontSize: { xs: 20, md: 22 }, color: "#2dd4bf" }} />
+                                        ) : (
+                                          <CheckBoxOutlineBlankIcon sx={{ fontSize: { xs: 20, md: 22 }, color: "#64748b" }} />
+                                        )}
+                                      </IconButton>
+                                    )}
+                                  </Box>
+
                                   <Box
                                     sx={{
                                       display: "flex",
@@ -1761,7 +2269,7 @@ function App() {
                                     size="small"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDeleteNote(note.id);
+                                      handleDeleteClick(note);
                                     }}
                                     sx={{
                                       color: "#ef4444",
@@ -1777,15 +2285,25 @@ function App() {
                                   </IconButton>
                                 </Box>
                               </Card>
-                            ))}
+                                </motion.div>
+                              ))}
+                            </AnimatePresence>
                           </Box>
                         )}
 
                         {layoutMode === "single" && (
                           <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
-                            {currentNotes.map((note) => (
-                              <Card
-                                key={note.id}
+                            <AnimatePresence mode="popLayout">
+                              {currentNotes.map((note, index) => (
+                                <motion.div
+                                  key={note.id}
+                                  layout
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
+                                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                                >
+                                  <Card
                                 sx={{
                                   backgroundColor: "rgba(21, 27, 46, 0.7)",
                                   border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -1966,7 +2484,7 @@ function App() {
 
                                     <IconButton
                                       size="small"
-                                      onClick={() => handleDeleteNote(note.id)}
+                                      onClick={() => handleDeleteClick(note)}
                                       sx={{
                                         color: "#ef4444",
                                         "&:hover": {
@@ -1980,7 +2498,9 @@ function App() {
                                   </Box>
                                 </CardContent>
                               </Card>
-                            ))}
+                                </motion.div>
+                              ))}
+                            </AnimatePresence>
                           </Box>
                         )}
                         {totalPages > 1 && (
@@ -2058,10 +2578,10 @@ function App() {
                                 {indexOfFirstNote + 1}-
                                 {Math.min(
                                   indexOfLastNote,
-                                  filteredNotes.length
+                                  searchedNotes.length
                                 )}
                               </strong>{" "}
-                              of <strong>{filteredNotes.length}</strong> notes
+                              of <strong>{searchedNotes.length}</strong> notes
                             </Typography>
                           </Box>
                         )}
@@ -2069,6 +2589,7 @@ function App() {
                     )}
                   </Grid>
                 </Grid>
+                )}
               </Box>
             </Box>
           )}
@@ -2133,6 +2654,148 @@ function App() {
           </Alert>
         </Snackbar>
 
+        <ExportDialog
+          open={exportDialogOpen}
+          onClose={() => setExportDialogOpen(false)}
+          onExport={handleExport}
+        />
+
+        <KeyboardShortcutsDialog
+          open={shortcutsOpen}
+          onClose={() => setShortcutsOpen(false)}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteConfirmOpen}
+          onClose={() => setDeleteConfirmOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              background: "rgba(21, 27, 46, 0.95)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+            },
+          }}
+        >
+          <DialogTitle sx={{ color: "#f1f5f9", fontWeight: 700 }}>
+            Delete Note?
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ color: "#94a3b8" }}>
+              Are you sure you want to delete this note? You'll have 5 seconds to undo.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={() => setDeleteConfirmOpen(false)}
+              sx={{
+                color: "#94a3b8",
+                "&:hover": {
+                  backgroundColor: "rgba(148, 163, 184, 0.1)",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteNote}
+              variant="contained"
+              sx={{
+                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                color: "white",
+                fontWeight: 600,
+                "&:hover": {
+                  background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                },
+              }}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Bulk Delete Confirmation Dialog */}
+        <Dialog
+          open={bulkDeleteConfirmOpen}
+          onClose={() => setBulkDeleteConfirmOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              background: "rgba(21, 27, 46, 0.95)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+            },
+          }}
+        >
+          <DialogTitle sx={{ color: "#f1f5f9", fontWeight: 700 }}>
+            {`Delete ${selectedNotes.length} Notes?`}
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ color: "#94a3b8" }}>
+              {`Are you sure you want to delete ${selectedNotes.length} selected notes? This action cannot be undone.`}
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={() => setBulkDeleteConfirmOpen(false)}
+              sx={{
+                color: "#94a3b8",
+                "&:hover": {
+                  backgroundColor: "rgba(148, 163, 184, 0.1)",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBulkDelete}
+              variant="contained"
+              sx={{
+                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                color: "white",
+                fontWeight: 600,
+                "&:hover": {
+                  background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                },
+              }}
+            >
+              Delete All
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Undo Delete Snackbar */}
+        <Snackbar
+          open={showUndoSnackbar}
+          autoHideDuration={5000}
+          onClose={() => setShowUndoSnackbar(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            severity="info"
+            variant="filled"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={handleUndoDelete}
+                sx={{ fontWeight: 700 }}
+              >
+                UNDO
+              </Button>
+            }
+            onClose={() => setShowUndoSnackbar(false)}
+            sx={{
+              background: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%)",
+              color: "#0a0e1a",
+              fontWeight: 600,
+            }}
+          >
+            Note deleted
+          </Alert>
+        </Snackbar>
+
         <VoiceControl
           onAddNote={async (content) => {
             setNote(content);
@@ -2159,7 +2822,10 @@ function App() {
               setLoadingNotes(false);
             }
           }}
-          onDeleteNote={handleDeleteNote}
+          onDeleteNote={(noteId) => {
+            const note = notes.find(n => n.id === noteId);
+            if (note) handleDeleteClick(note);
+          }}
           onEditNote={handleUpdateNote}
           notes={notes}
         />

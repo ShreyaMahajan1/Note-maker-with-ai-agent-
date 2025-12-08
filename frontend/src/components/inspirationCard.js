@@ -19,6 +19,8 @@ const InspirationCard = () => {
   const [selectedMood, setSelectedMood] = useState("motivational");
   const [loading, setLoading] = useState(false);
   const [useAI, setUseAI] = useState(true);
+  const [aiQuoteCache, setAiQuoteCache] = useState({});
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   const contentData = {
     quotes: [
@@ -41,7 +43,12 @@ const InspirationCard = () => {
     return contentData.quotes[seed % contentData.quotes.length];
   };
 
-  const fetchAIQuote = async (mood = 'motivational') => {
+  const fetchAIQuote = async (mood = 'motivational', useCache = true) => {
+    // Check cache first
+    if (useCache && aiQuoteCache[mood]) {
+      return aiQuoteCache[mood];
+    }
+
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/ai/quote`, {
@@ -50,8 +57,19 @@ const InspirationCard = () => {
         body: JSON.stringify({ mood })
       });
       const data = await response.json();
+      
       if (data.quote) {
-        return { text: data.quote, author: 'AI Generated', isAI: true };
+        const quote = { text: data.quote, author: 'AI Generated', isAI: true };
+        // Cache the quote
+        setAiQuoteCache(prev => ({ ...prev, [mood]: quote }));
+        return quote;
+      }
+      
+      // If quota exceeded, show friendly message
+      if (data.error && (data.error.includes('quota') || data.error.includes('429'))) {
+        console.warn('AI quota exceeded, using static quotes');
+        setQuotaExceeded(true);
+        return null;
       }
     } catch (error) {
       console.error('Failed to fetch AI quote:', error);
@@ -77,7 +95,8 @@ const InspirationCard = () => {
     setFadeIn(false);
     setTimeout(async () => {
       if (useAI) {
-        const aiQuote = await fetchAIQuote(selectedMood);
+        // Force fetch new quote (bypass cache)
+        const aiQuote = await fetchAIQuote(selectedMood, false);
         setCurrentContent(aiQuote || contentData.quotes[Math.floor(Math.random() * contentData.quotes.length)]);
       } else {
         const quotes = contentData.quotes;
@@ -102,7 +121,6 @@ const InspirationCard = () => {
     <Card
       elevation={0}
       sx={{
-        height: { xs: "240px", md: "320px" },
         background: "linear-gradient(135deg, rgba(45, 212, 191, 0.08) 0%, rgba(20, 184, 166, 0.05) 100%)",
         borderRadius: 3,
         position: "relative",
@@ -119,7 +137,6 @@ const InspirationCard = () => {
       <CardContent
         sx={{
           p: 3,
-          height: "100%",
           display: "flex",
           flexDirection: "column",
           position: "relative",
@@ -153,6 +170,20 @@ const InspirationCard = () => {
                   "& .MuiChip-icon": {
                     color: "#0a0e1a",
                   },
+                }}
+              />
+            )}
+            {quotaExceeded && useAI && (
+              <Chip
+                label="Quota Limit"
+                size="small"
+                sx={{
+                  height: 18,
+                  fontSize: "0.65rem",
+                  fontWeight: 600,
+                  background: "rgba(245, 158, 11, 0.15)",
+                  color: "#f59e0b",
+                  border: "1px solid rgba(245, 158, 11, 0.3)",
                 }}
               />
             )}
@@ -204,6 +235,7 @@ const InspirationCard = () => {
             flexDirection: "column", 
             justifyContent: "center",
             overflow: "hidden",
+            minHeight: "180px",
           }}>
             {loading && !currentContent ? (
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
