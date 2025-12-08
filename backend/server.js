@@ -470,54 +470,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// 404 Handler - Must be after all routes
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Route not found',
-    path: req.path,
-    method: req.method
-  });
-});
-
-// Global Error Handler - Must be last
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  
-  // Multer file upload errors
-  if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
-    }
-    return res.status(400).json({ error: `Upload error: ${err.message}` });
-  }
-  
-  // Custom file type error
-  if (err.message && err.message.includes('Invalid file type')) {
-    return res.status(400).json({ error: err.message });
-  }
-  
-  // MongoDB errors
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: 'Validation error', details: err.message });
-  }
-  
-  if (err.name === 'CastError') {
-    return res.status(400).json({ error: 'Invalid ID format' });
-  }
-  
-  // Google API errors
-  if (err.code && err.code >= 400 && err.code < 500) {
-    return res.status(err.code).json({ error: err.message || 'Google API error' });
-  }
-  
-  // Default error
-  const statusCode = err.statusCode || err.status || 500;
-  res.status(statusCode).json({
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
 app.listen(port, () => {
   console.log(`🚀 Server is running on port ${port}`);
   console.log(`📊 Rate limiting enabled:`);
@@ -644,4 +596,52 @@ app.get('/api/notes', async (req, res) => {
     // Return empty array instead of error object to prevent frontend crashes
     res.json([]);
   }
+});
+
+// 404 Handler - Must be after ALL routes
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
+});
+
+// Global Error Handler - Must be last
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  
+  // Multer file upload errors
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 100MB.' });
+    }
+    return res.status(400).json({ error: `Upload error: ${err.message}` });
+  }
+  
+  // Custom file type error
+  if (err.message && err.message.includes('Invalid file type')) {
+    return res.status(400).json({ error: err.message });
+  }
+  
+  // MongoDB errors
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: 'Validation error', details: err.message });
+  }
+  
+  if (err.name === 'CastError') {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+  
+  // Google API errors
+  if (err.code && err.code >= 400 && err.code < 500) {
+    return res.status(err.code).json({ error: err.message || 'Google API error' });
+  }
+  
+  // Default error
+  const statusCode = err.statusCode || err.status || 500;
+  res.status(statusCode).json({
+    error: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
