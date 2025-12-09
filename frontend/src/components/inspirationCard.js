@@ -43,8 +43,8 @@ const InspirationCard = () => {
     return contentData.quotes[seed % contentData.quotes.length];
   };
 
-  const fetchAIQuote = async (mood = 'motivational', useCache = true) => {
-    // Check cache first
+  const fetchAIQuote = async (mood = 'motivational', useCache = false) => {
+    // Only use cache if explicitly requested (not by default)
     if (useCache && aiQuoteCache[mood]) {
       return aiQuoteCache[mood];
     }
@@ -60,8 +60,7 @@ const InspirationCard = () => {
       
       if (data.quote) {
         const quote = { text: data.quote, author: 'AI Generated', isAI: true };
-        // Cache the quote
-        setAiQuoteCache(prev => ({ ...prev, [mood]: quote }));
+        // Don't cache by default - let each request get a fresh quote
         return quote;
       }
       

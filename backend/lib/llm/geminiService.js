@@ -89,10 +89,23 @@ Respond with ONLY the category name, nothing else.`;
   }
 
   async generateQuote(mood = 'motivational') {
-    const prompt = `Generate a ${mood} quote that is inspiring and meaningful. The quote should be original and thought-provoking.`;
+    // Add randomness to get different quotes each time
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    const themes = {
+      motivational: ['success', 'perseverance', 'achievement', 'determination', 'growth'],
+      calm: ['peace', 'serenity', 'mindfulness', 'tranquility', 'balance'],
+      happy: ['joy', 'gratitude', 'positivity', 'celebration', 'contentment'],
+      focused: ['concentration', 'discipline', 'clarity', 'purpose', 'dedication'],
+      creative: ['innovation', 'imagination', 'inspiration', 'originality', 'expression']
+    };
+    
+    const moodThemes = themes[mood] || themes.motivational;
+    const randomTheme = moodThemes[Math.floor(Math.random() * moodThemes.length)];
+    
+    const prompt = `Generate a unique ${mood} quote about ${randomTheme}. The quote should be inspiring and meaningful. Make it original and thought-provoking. Random seed: ${randomSeed}`;
 
     const systemPrompt =
-      'You are a wise quote generator. Create original, inspiring quotes. Do not use asterisks, markdown formatting, or special characters. Return only the quote text without quotation marks or attribution.';
+      'You are a wise quote generator. Create original, inspiring quotes. Do not use asterisks, markdown formatting, or special characters. Return only the quote text without quotation marks or attribution. Generate a different quote each time.';
 
     return await this.generate(prompt, systemPrompt);
   }

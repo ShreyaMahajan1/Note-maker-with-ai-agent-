@@ -51,13 +51,26 @@ class GroqService {
    * Generate a motivational quote
    */
   async generateQuote(mood = 'motivational') {
-    const prompt = `Generate a single ${mood} quote. Return ONLY the quote text and author in this format:
+    // Add randomness to get different quotes each time
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    const themes = {
+      motivational: ['success', 'perseverance', 'achievement', 'determination', 'growth'],
+      calm: ['peace', 'serenity', 'mindfulness', 'tranquility', 'balance'],
+      happy: ['joy', 'gratitude', 'positivity', 'celebration', 'contentment'],
+      focused: ['concentration', 'discipline', 'clarity', 'purpose', 'dedication'],
+      creative: ['innovation', 'imagination', 'inspiration', 'originality', 'expression']
+    };
+    
+    const moodThemes = themes[mood] || themes.motivational;
+    const randomTheme = moodThemes[Math.floor(Math.random() * moodThemes.length)];
+    
+    const prompt = `Generate a unique ${mood} quote about ${randomTheme}. Return ONLY the quote text and author in this format:
 Quote text here - Author Name
 
 Do NOT use quotation marks or asterisks. Just plain text.
-Make it inspiring and relevant to ${mood} themes.`;
+Make it inspiring and relevant to ${mood} themes. Random seed: ${randomSeed}`;
 
-    const systemPrompt = 'You are a wise quote generator. Return only plain text without quotes, asterisks, or markdown formatting.';
+    const systemPrompt = 'You are a wise quote generator. Return only plain text without quotes, asterisks, or markdown formatting. Generate a different quote each time.';
     
     return await this.generate(prompt, systemPrompt);
   }

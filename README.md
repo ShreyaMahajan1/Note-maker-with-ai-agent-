@@ -55,6 +55,29 @@ project/
 
 ## Features
 
-- Express backend with a test API endpoint
-- React frontend that fetches and displays data from the backend
+- Express backend with AI-powered note management
+- React frontend with modern UI
+- MongoDB database integration
+- Google Calendar integration
+- AI features powered by Groq (Llama 3.3 70B)
+  - Note suggestions and enhancements
+  - Smart categorization
+  - Meeting summaries
+  - Daily inspirational quotes
 - Hot-reloading development environment
+
+## AI Configuration
+
+This application uses a hybrid AI approach:
+- **Groq (Llama 3.3 70B)** - For text-based AI features (quotes, suggestions, summaries)
+- **Gemini** - For video/audio transcription (multimodal capabilities)
+
+### Setup API Keys
+
+1. Get your Groq API key from [Groq Console](https://console.groq.com/)
+2. Get your Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+3. Add both to `backend/.env`:
+   ```
+   GROQ_API_KEY=your_groq_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
